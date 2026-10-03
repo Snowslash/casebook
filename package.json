@@ -1,0 +1,35 @@
+{
+  "name": "operation-logbook-explorer",
+  "version": "0.1.0",
+  "description": "Casebook: a browser-memory-only, read-only explorer for operative eLogbook XLSX exports.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "fixture": "python scripts/create_fixture.py",
+    "check": "npm test && npm run build && npm run test:e2e"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "read-excel-file": "9.3.10",
+    "fflate": "0.8.3",
+    "saxen": "11.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/node": "^22.0.0",
+    "typescript": "~5.9.3",
+    "vite": "8.3.2",
+    "vitest": "5.0.3",
+    "@playwright/test": "1.63.0"
+  }
+}
