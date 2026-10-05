@@ -160,6 +160,8 @@ test('overview remains compact, keyboard-operable and contained at desktop and m
     await expect(month).toHaveAttribute('aria-pressed', 'true');
     const sources = page.getByRole('link', { name: 'View source rows' });
     await sources.click();
+    // The estate enables native smooth anchor scrolling; assert the destination, not its first frame.
+    await expect.poll(() => page.locator('.table-panel').evaluate(el => el.getBoundingClientRect().top)).toBeLessThan(300);
     const tableTop = await page.locator('.table-panel').evaluate(el => el.getBoundingClientRect().top);
     expect(tableTop).toBeGreaterThanOrEqual(0);
     expect(tableTop).toBeLessThan(300);

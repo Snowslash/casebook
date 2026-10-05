@@ -1,0 +1,71 @@
+import { test, expect, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+
+// Vite preview does not interpret _headers. Apply the exact built policy to
+// real browser responses to test enforcement, not to claim a Pages deployment.
+async function applyPagesHeaders(page: Page) {
+  const lines = readFileSync('dist/_headers', 'utf8').trim().split('\n');
+  expect(lines.shift()).toBe('/*');
+  const headers = Object.fromEntries(lines.map(line => {
+    const colon = line.indexOf(':');
+    return [line.slice(0, colon).trim().toLowerCase(), line.slice(colon + 1).trim()];
+  }));
+  await page.route('**/*', async route => {
+    const response = await route.fetch();
+    await route.fulfill({ response, headers: { ...response.headers(), ...headers } });
+  });
+  return headers;
+}
+
+test('the build carries the Pages header file and all first-party and font notices', async ({ request }) => {
+  expect(readFileSync('dist/_headers', 'utf8')).toBe(readFileSync('public/_headers', 'utf8'));
+  for (const name of ['MIT-Casebook.txt', 'MIT-estate-ui.txt', 'OFL-Literata.txt', 'OFL-Atkinson-Hyperlegible-Next.txt', 'THIRD-PARTY-NOTICES.txt']) {
+    const response = await request.get(`/licenses/${name}`);
+    expect(response.ok()).toBe(true);
+    expect(response.headers()['content-type']).toContain('text/plain');
+    expect(await response.text()).toBe(readFileSync(`public/licenses/${name}`, 'utf8'));
+  }
+});
+
+test('the HTTP-header policy preserves the synthetic import and exact chart drill-down loop', async ({ page }) => {
+  const headers = await applyPagesHeaders(page);
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  const response = await page.goto('/');
+  for (const [name, value] of Object.entries(headers)) expect(response!.headers()[name]).toBe(value);
+  await page.getByLabel('Choose .xlsx file').setInputFiles('public/synthetic-logbook.xlsx');
+  await expect(page.getByTestId('preview-count')).toHaveText('9 logged procedures');
+  await page.getByRole('button', { name: 'Explore procedures' }).click();
+  await page.getByLabel('Procedure', { exact: true }).selectOption(JSON.stringify('Synthetic procedure A'));
+  await page.getByRole('button', { name: 'Feb 2026: 6 procedures', exact: true }).click();
+  await expect(page.locator('tbody th')).toHaveText(['3', '4', '5', '6', '7', '8']);
+  const supervision = page.getByRole('region', { name: 'Supervision breakdown', exact: true });
+  await supervision.getByRole('radio', { name: 'Pie' }).check();
+  await supervision.getByRole('button', { name: 'Performed: 2 procedures · pie slice', exact: true }).click();
+  await expect(page.locator('tbody th')).toHaveText(['5', '6']);
+  await page.getByRole('button', { name: 'Switch to light mode' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('tbody th')).toHaveText(['5', '6']);
+  await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(9);
+  await page.getByRole('button', { name: 'Clear file', exact: true }).click();
+  await expect(page.locator('table')).toHaveCount(0);
+  expect(await page.evaluate(() => ({ local: Object.fromEntries(Object.entries(localStorage)), session: sessionStorage.length }))).toEqual({ local: { sangeevSiteTheme: 'light' }, session: 0 });
+  expect(errors).toEqual([]);
+});
+
+test('the response policy prevents framing even by the same origin', async ({ page }) => {
+  await applyPagesHeaders(page);
+  const blocked: string[] = [];
+  page.on('console', message => { if (message.type() === 'error' && /frame-ancestors|X-Frame-Options/i.test(message.text())) blocked.push(message.text()); });
+  await page.goto('/');
+  await page.evaluate(() => {
+    const frame = document.createElement('iframe');
+    frame.title = 'Synthetic framing probe';
+    frame.src = '/';
+    document.body.append(frame);
+  });
+  await expect.poll(() => blocked.length).toBeGreaterThan(0);
+  await expect(page.frameLocator('iframe').getByRole('heading', { name: 'Explore your eLogbook export' })).toHaveCount(0);
+});

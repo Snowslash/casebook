@@ -1,6 +1,6 @@
 # Casebook
 
-A local-first, read-only explorer for UK operative eLogbook `.xlsx` exports. **The official eLogbook remains authoritative.** Counts represent logged procedures, not unique patients, theatre sessions, competence or official portfolio points.
+A local-first, read-only explorer for UK operative eLogbook `.xlsx` exports. Counts represent logged procedures, not unique patients, theatre sessions, competence or official portfolio points.
 
 ## Explore a workbook
 
@@ -11,11 +11,13 @@ Open an `.xlsx` file, review the import, then explore monthly activity, procedur
 - Monthly bars show only months with entries, in chronological order, plus a missing/invalid-date category—not an inferred continuous activity timeline.
 - Exact source labels, blank categories, unfamiliar supervision labels and possible duplicates remain visible. Charts retain every category rather than collapsing a long tail into “Other”.
 - Filter chips remove individual selections. Search recovery can clear just search; Reset clears all filters. The summary describes the current source-table selection, excluding blank labels from distinct procedure/hospital counts.
+- Short control, chart and chip feedback respects the system's reduced-motion preference, including changes made while the app is open. Counts and source rows update without waiting for animation. Bars/Pie uses a brief crossfade where the native View Transition API is available, with an immediate switch otherwise. Incoming chart controls stay clickable during the fade; Clear/replacement cancels it. There are no animated numbers, table rows or repeated overview entrances while filtering.
 
 ## Data and privacy
 
-- Processing is in browser memory, with no upload endpoint, accounts, analytics, AI or automatic retention. No backend or database is required.
-- There is no localStorage, IndexedDB or service worker. Reload or Clear removes the app's working state, but is not a guarantee of secure memory erasure. There is no saved session or export/backup feature; keep your original workbook securely outside this repository.
+- Workbook processing is in browser memory, with no upload endpoint, accounts, analytics, AI or automatic retention of workbook data. No backend or database is required.
+- Only the light/dark preference is saved, using the estate's `sangeevSiteTheme` localStorage key and `SameSite=Lax` cookie. On a future `sangeev.me` host, the preference cookie is shared across estate subdomains. A valid cookie takes precedence over origin-local storage; the first-visit default is dark. Storage failures do not prevent using the app.
+- No workbook contents, filenames, filters or chart choices are saved. There is no IndexedDB or service worker. Reload or Clear removes the workbook's working state, but is not a guarantee of secure memory erasure; the theme preference remains. There is no saved workbook session or export/backup feature; keep your original workbook securely outside this repository.
 - Application state retains only operation date, operation label, supervision, hospital, validation status and row provenance/quality flags. Parsing temporarily reads the supplied workbook. Notes, consultant details, patient attributes and specialty parameters are not displayed or searched.
 - Use only wholly synthetic files for development, tests, screenshots and issue reports. Never commit clinical exports, patient-identifiable information or credentials. The only workbook intended for publication is the authored `public/synthetic-logbook.xlsx` example.
 - No automatic deduplication, category mapping or interpretation of numeric codes. `Performed` remains the recorded label; it is not renamed independent. Supervision patterns do not establish competence.
@@ -55,7 +57,7 @@ Overview checks: January 1, February 7, missing/invalid date 1; procedure A 8 an
 
 ## Run locally
 
-Requires Node.js 22.12+ and npm. From the project directory:
+Requires Node.js 22.23.0 or newer within Node 22 and npm; `.node-version` pins the verified runtime to 22.23.3. Fixture regeneration additionally needs Python 3 available as `python`. From the project directory:
 
 ```bash
 npm ci --ignore-scripts
@@ -69,6 +71,14 @@ For editing, use `npm run dev`. The strict page CSP intentionally blocks network
 
 ## Build and check
 
+### Shared estate theme
+
+Casebook consumes the exact vendored `@sangeev/estate-ui@2.0.0-alpha.6` package in `vendor/`, pinned by `package-lock.json`. It uses the shared header, light/dark control, `wide-app` layout, Literata headings, Atkinson Hyperlegible Next UI type and theme-aware colours. Fonts are served with the app; their upstream licence texts are included in `public/licenses/` and copied unchanged into the build. No runtime font service is contacted. The archive includes the shared UI source and its MIT licence; a private registry or access to another repository is not needed to build Casebook.
+
+This is a Casebook integration, not an estate-wide release. The package recognises Casebook without inventing a hosted destination or marking a sibling current. Existing estate applications retain their previous package pins and the same visual contract. Hosting, a public Casebook address and adding a return link from the estate index remain separate deployment decisions.
+
+### Verification commands
+
 ```bash
 # Install the browser binary once for end-to-end checks:
 npx playwright install chromium
@@ -78,6 +88,23 @@ npm run fixture
 ```
 
 `npm run check` runs Vitest, TypeScript checking, the production build and Playwright against that build. The browser test server uses loopback port 4173 and exits after testing; stop any manually running preview on that port first. Tests use only synthetic files. Playwright traces are disabled; synthetic screenshots go to ignored `test-results/`. Dependencies are locked in `package-lock.json`.
+
+## Cloudflare Pages
+
+This is a static Vite application. Connect the GitHub repository to **Cloudflare Pages**, not a Worker deployment, with these settings:
+
+| Setting | Value |
+|---|---|
+| Production branch | `main` |
+| Root directory | Repository root |
+| Build command | `npm ci --include=dev --ignore-scripts && npm run build` |
+| Build output directory | `dist` |
+| Environment variable | `SKIP_DEPENDENCY_INSTALL=1` |
+| Node runtime | `.node-version` selects `22.23.3`; remove conflicting dashboard overrides |
+
+The explicit install uses the committed lockfile without running dependency lifecycle scripts. It includes the build tools even if a host sets `NODE_ENV=production`. No application secrets, database, backend or private npm registry are required. Do not enable Web Analytics, Browser Insights, Rocket Loader or other script injection for this app.
+
+`public/_headers` is copied to `dist/_headers` for Pages. It preserves the app's existing CSP, adds response-only frame protection and sets MIME-sniffing, referrer and browser-permission restrictions. Ordinary Vite preview does **not** apply this file; the browser suite separately exercises the policy as HTTP headers. Once deployed, verify the actual response headers, assets and synthetic import/filter/reset/clear flow on the Pages URL and custom domain. Local checks are not proof of a Cloudflare deployment.
 
 ## Deliberate import limits
 
@@ -90,12 +117,20 @@ This is a narrow parser contract, not a general spreadsheet viewer:
 - Analytical categories must be text or blank. Whitespace and spelling are preserved; there is no trimming, category normalisation or procedure merging.
 - Possible duplicates compare all parsed source values before excluded fields are discarded. Flags are not proof of erroneous entries.
 - Date placeholders specify `DD/MM/YYYY`, independently of browser locale, and impossible dates are rejected. Incomplete dates show a completion prompt; invalid or reversed dates show a correction message. In those states, summaries, charts and source rows are withheld rather than showing false zero-match results. Completing/clearing the input restores results under the other selections; valid filters with no matches still show an explicit empty result. Search accepts displayed UK dates as well as ISO dates and searches only retained analytical values. Chart selections narrow the table; each chart retains the other dimensions' context so its alternatives remain selectable.
-- A failed replacement import clears the previous dataset, preventing stale results from looking like the newly selected file. Clear/reload removes the working state. No persistence is implemented.
+- A failed replacement import clears the previous dataset, preventing stale results from looking like the newly selected file. Clear/reload removes the workbook's working state. Only the theme preference persists.
 
 ## Project status
 
-The current synthetic suite passes **65 unit/integration tests and 34 Chromium browser tests**, plus TypeScript checking and a production build. Browser checks cover Bars/Pie switching, exact source-row drill-down, missing and unfamiliar labels, single/empty charts, keyboard activation, date validation, responsive overflow and absence of upload/persistent state in the exercised journeys. Desktop, tablet and narrow phone viewports have been checked; this is not physical-device certification. `npm audit` reported no known vulnerabilities in the locked dependencies during this verification, not a guarantee of security.
+The current synthetic suite passes **70 unit/integration tests and 59 Chromium browser tests**, plus TypeScript checking and a production build. Browser checks cover Bars/Pie switching, exact source-row drill-down, missing and unfamiliar labels, single/empty charts, keyboard activation, date validation and responsive overflow. Motion checks include intermediate bar geometry with immediate counts, clicks through a paused crossfade, reduced-motion changes, native-API fallback and cancellation across rapid switch/clear/replacement and overlapping charts. Publication checks cover licence/notice distribution, the Pages header artifact, the synthetic workflow under its HTTP policy and refusal to load inside an iframe.
+
+Theme checks exercise the actual control, cookie precedence, blocked-storage fallback and reload. Only the theme preference persists; no workbook state, uploads or external asset requests were observed in the exercised journeys. Both themes are checked at 1536px, 390px and 320px for shared geometry, selected text contrast and keyboard focus. Colour changes are immediate so theme switching does not briefly put new text on an old background; chart motion remains separate. Density checks allow the additional estate header and shared title sizing rather than silently shrinking the package typography.
+
+The shared package's **84 tests**, including its packed licence check, and five-consumer source audit pass with explicit per-consumer versions. Its scoped Firefox browser gate also passes for Casebook's opening screen at desktop/phone sizes in both themes, including served font licences, geometry, theme switching, focus and touch targets. This is not full Firefox import-workflow validation or physical-device certification. The dependency audit reported no known vulnerabilities after the theme package installation, not a guarantee of security.
 
 An early, narrowly scoped browser tool. Synthetic tests are not clinical validation, a full accessibility audit or security certification. Broader export compatibility, other browsers and larger-file performance are not validated. The importer intentionally rejects unsupported workbooks rather than guessing or partially importing them.
 
-No project licence has been selected; choosing one remains a publication decision.
+## Licence
+
+Casebook is licensed under the [MIT License](LICENSE). The bundled `@sangeev/estate-ui` code is also MIT; its archive includes its own `LICENSE`. Atkinson Hyperlegible Next and Literata remain under their upstream SIL Open Font Licences. Runtime dependencies retain their own licences.
+
+The static build includes the Casebook and shared UI MIT notices, both font licences and `THIRD-PARTY-NOTICES.txt` under `/licenses/`. Third-party notices retain the licence texts supplied by the locked production packages. The `worker-f` entry explicitly identifies its upstream MIT metadata and missing licence file without inventing a copyright year. `private: true` in the package metadata prevents accidental npm publication; it does not restrict this repository's MIT licence or require a private GitHub repository.

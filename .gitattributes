@@ -1,0 +1,4 @@
+# Preserve upstream font-licence bytes, including their original whitespace.
+public/licenses/OFL-*.txt -text -whitespace
+# The combined dependency notices also retain upstream line endings/whitespace.
+public/licenses/THIRD-PARTY-NOTICES.txt -text -whitespace

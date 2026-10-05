@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { EstatePageTitle, EstateSectionTitle, EstateShell, PublicEstateHeader, useEstateTheme } from '@sangeev/estate-ui';
 import { aggregateRoles, aggregateMonths, aggregateProcedures, aggregateHospitals, filterRows, HEADINGS, USED_HEADINGS, type Filters, type ImportedLogbook } from './logbook';
 import { MAX_FILE_BYTES } from './workbookGuard';
 import { parseUKDate } from './dates';
@@ -9,6 +10,7 @@ const missing = (value: string | null) => value === null ? <span className="mute
 const optionValue = (value: string | null | undefined) => value === undefined ? '' : JSON.stringify(value);
 
 export default function App() {
+  const { theme, toggleTheme } = useEstateTheme();
   const [book, setBook] = useState<ImportedLogbook | null>(null);
   const [exploring, setExploring] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -17,8 +19,27 @@ export default function App() {
   const [chartViews, setChartViews] = useState<{ procedure: ChartView; role: ChartView }>({ procedure: 'bars', role: 'bars' });
   const input = useRef<HTMLInputElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
+  const filterArea = useRef<HTMLDivElement>(null);
   const job = useRef<{ worker: Worker; timer: ReturnType<typeof setTimeout> } | null>(null);
   const generation = useRef(0);
+
+  useEffect(() => {
+    const preference = matchMedia('(prefers-reduced-motion: reduce)');
+    const stop = () => { if (preference.matches) filterArea.current?.getAnimations().forEach(animation => animation.cancel()); };
+    preference.addEventListener('change', stop);
+    return () => preference.removeEventListener('change', stop);
+  }, []);
+
+  function removeFilter(key: keyof Filters, button: HTMLButtonElement) {
+    // Remove data immediately; feedback belongs to the remaining controls, not a stale chip.
+    const area = filterArea.current;
+    area?.getAnimations().forEach(animation => animation.cancel());
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      area?.animate([{ backgroundColor: getComputedStyle(area).getPropertyValue('--secondary').trim() }, { backgroundColor: 'transparent' }], { duration: 120, easing: 'ease-out' });
+    }
+    if (document.activeElement === button && button.nextElementSibling instanceof HTMLElement) button.nextElementSibling.focus({ preventScroll: true });
+    changeFilter(key, undefined);
+  }
 
   function clear() {
     generation.current++;
@@ -100,23 +121,25 @@ export default function App() {
     {noHospital > 0 && <span><b>{noHospital}</b> missing hospitals</span>}
   </div>;
 
-  return <div className="app-shell">
-    <header className="topbar">
+  return <>
+    <PublicEstateHeader current="casebook" theme={theme} onToggleTheme={toggleTheme}/>
+    <EstateShell variant="wide-app" className="app-shell">
+    <div className="topbar">
       <div className="identity"><span className="brand-mark" aria-hidden="true">CB</span><div><strong>Casebook</strong><span className="tagline">Explore your operative logbook</span></div></div>
       <div className="header-actions"><span className="local-status"><i/> Local · in memory</span>
         {(book || loading || error) && <button className="quiet" onClick={clear}>Clear file</button>}
-        <button className="primary" onClick={() => input.current?.click()}>Open .xlsx <span aria-hidden="true">↗</span></button>
-        <input className="sr-only" ref={input} type="file" accept=".xlsx" aria-label="Choose .xlsx file" onChange={event => { const file = event.target.files?.[0]; if (file) void openFile(file); }}/>
+        <button className="primary estate-primary-action" onClick={() => input.current?.click()}>Open .xlsx <span aria-hidden="true">↗</span></button>
+        <input hidden ref={input} type="file" accept=".xlsx" aria-label="Choose .xlsx file" onChange={event => { const file = event.target.files?.[0]; if (file) void openFile(file); }}/>
       </div>
-    </header>
+    </div>
 
     <main>
       {error && <div className="error" role="alert">{error}</div>}
       {loading && <div className="loading" role="status">Reading workbook locally… <span>You can clear or replace it at any time.</span></div>}
       {!book && !loading && <section className="welcome">
-        <div className="welcome-copy"><h1>Explore your eLogbook export</h1>
+        <div className="welcome-copy"><EstatePageTitle variant="app">Explore your eLogbook export</EstatePageTitle>
           <p className="lede">Open a workbook, filter by date, procedure or hospital, then inspect the entries behind each chart.</p>
-          <button className="primary large" onClick={() => input.current?.click()}>Choose a workbook <span aria-hidden="true">→</span></button>
+          <button className="primary estate-primary-action" onClick={() => input.current?.click()}>Choose a workbook <span aria-hidden="true">→</span></button>
           <p className="welcome-privacy">No uploads. No saved working data.</p>
           <p className="small muted">Native .xlsx · one worksheet · up to 5 MiB</p>
           <a className="sample-link" href="./synthetic-logbook.xlsx" download>Download the wholly synthetic example</a>
@@ -125,7 +148,7 @@ export default function App() {
       </section>}
 
       {book && !exploring && <section className="preview panel">
-        <h1>Review your import</h1>
+        <EstatePageTitle variant="app">Review your import</EstatePageTitle>
         <p className="lede">One row is one logged procedure. Multiple procedures in a theatre session remain separate entries.</p>
         <div className="preview-summary"><strong data-testid="preview-count">{rows.length} logged procedures</strong><span>Sheet: <b>{book.sheet}</b></span><span>{book.headings.length} recognised headings</span></div>
         {quality}
@@ -134,11 +157,11 @@ export default function App() {
           <p><b>Excluded from display and search:</b> {HEADINGS.filter(h => !USED_HEADINGS.includes(h)).join(' · ')}.</p>
           <p>The parser temporarily reads the workbook. Only the included fields and row-quality flags enter the explorer. Workbook metadata and excluded values are not retained in its working state.</p></details>
         {rows.length === 0 && <p>No procedure rows were found. Open a workbook containing entries.</p>}
-        <div className="preview-actions"><button className="primary large" disabled={!rows.length} onClick={() => setExploring(true)}>Explore procedures <span aria-hidden="true">→</span></button><span className="small muted">Original labels preserved. No competence score.</span></div>
+        <div className="preview-actions"><button className="primary estate-primary-action" disabled={!rows.length} onClick={() => setExploring(true)}>Explore procedures <span aria-hidden="true">→</span></button><span className="small muted">Original labels preserved. No competence score.</span></div>
       </section>}
 
-      {book && exploring && <>
-        <section className="section-heading"><div><h1>Recorded procedures</h1><p className="muted">{book.sheet} · {rows.length} imported entries</p></div><button className="quiet" onClick={() => setExploring(false)}>Review import</button></section>
+      {book && exploring && <div className="explorer">
+        <section className="section-heading"><div><EstatePageTitle variant="app">Recorded procedures</EstatePageTitle><p className="muted">{book.sheet} · {rows.length} imported entries</p></div><button className="quiet" onClick={() => setExploring(false)}>Review import</button></section>
         <section className="filters panel" aria-label="Filters">
           <label className="search-label">Search all views<input ref={searchInput} type="search" placeholder="Procedure, role, hospital, date…" value={filters.query ?? ''} onChange={e => changeFilter('query', e.target.value)}/></label>
           <label>From date<input type="text" aria-label="From date" placeholder="DD/MM/YYYY" maxLength={10} aria-invalid={from === null || invalidRange} aria-describedby={datesBlocked ? 'date-feedback' : undefined} value={filters.from ?? ''} onChange={e => changeFilter('from', e.target.value)}/></label>
@@ -147,9 +170,9 @@ export default function App() {
           <label className="hospital-filter">Hospital<select aria-label="Hospital" value={optionValue(filters.hospital)} onChange={e => selectCategory('hospital', e.target.value)}><option value="">All hospitals</option>{hospitals.map(group => <option key={group.key} value={group.key}>{group.label}{group.missing ? ' (blank)' : ''}</option>)}</select></label>
         </section>
         {datesBlocked && <p id="date-feedback" className={incompleteDate ? 'filter-status' : 'error'} role={incompleteDate ? 'status' : 'alert'}>{incompleteDate ? 'Complete or clear the date filters to view results.' : invalidRange ? 'From date must not be after To date. Correct the range or reset filters.' : 'Enter a valid date in DD/MM/YYYY format, or leave it empty. Results are paused until the date is valid.'}</p>}
-        <div className="active-filters" aria-label="Active filters">
+        <div ref={filterArea} className="active-filters" aria-label="Active filters">
           {activeFilters.length === 0 && !datesBlocked && <span className="muted">No active filters</span>}
-          {activeFilters.map(filter => <button key={filter.key} className="chip selected" aria-label={`Remove ${filter.key === 'role' ? 'supervision' : filter.key} filter`} onClick={() => changeFilter(filter.key, undefined)}>{filter.label} <span aria-hidden="true">×</span></button>)}
+          {activeFilters.map(filter => <button key={filter.key} className="chip selected" aria-label={`Remove ${filter.key === 'role' ? 'supervision' : filter.key} filter`} onClick={event => removeFilter(filter.key, event.currentTarget)}>{filter.label} <span aria-hidden="true">×</span></button>)}
           <button className="quiet filter-reset" onClick={() => setFilters({})}>Reset filters</button>
         </div>
         {!datesBlocked && <>
@@ -175,15 +198,16 @@ export default function App() {
             view={chartViews.role} onViewChange={view => setChartViews(previous => ({ ...previous, role: view }))} categoryKeys={aggregateRoles(rows).map(group => group.key).sort()}/>
         </section>
 
-        <section className="panel table-panel" id="source-rows"><div className="table-heading"><div><h2>Included source rows</h2><p className="small muted">{selected.length} matching {selected.length === 1 ? 'row' : 'rows'} · sheet {book.sheet}</p></div></div>
+        <section className="panel table-panel" id="source-rows"><div className="table-heading"><div><EstateSectionTitle>Included source rows</EstateSectionTitle><p className="small muted">{selected.length} matching {selected.length === 1 ? 'row' : 'rows'} · sheet {book.sheet}</p></div></div>
           <p className="small muted scroll-hint">Scroll horizontally to see all source columns.</p>
           <div className="table-scroll" tabIndex={0} role="region" aria-label="Source rows, scroll horizontally if needed"><table><caption className="sr-only">Logged procedures included in the current selection. Row numbers refer to the original sheet.</caption><thead><tr><th scope="col">Source row</th><th scope="col">Operation date</th><th scope="col">Procedure</th><th scope="col">Supervision</th><th scope="col">Hospital</th><th scope="col">Validation</th><th scope="col">Review flags</th></tr></thead><tbody>
           {selected.map(row => <tr key={row.sourceRow}><th scope="row">{row.sourceRow}</th><td>{row.date ? ukDate(row.date) : row.dateIssue === 'invalid' ? <><span className="flag">Invalid date</span><span className="raw-date">{row.dateRaw}</span></> : missing(null)}</td><td>{missing(row.operation)}</td><td>{missing(row.supervision)}</td><td>{missing(row.hospital)}</td><td>{missing(row.validation)}</td><td className="row-flags">{row.duplicate && <span className="flag">Possible duplicate</span>}{row.dateIssue && <span className="flag">{row.dateIssue === 'missing' ? 'Missing date' : 'Invalid date'}</span>}{row.supervision === null && <span className="flag">Missing supervision</span>}{row.unknownRole && <span className="flag">Unfamiliar label</span>}{row.operation === null && <span className="flag">Missing procedure</span>}{!row.duplicate && !row.dateIssue && row.supervision !== null && !row.unknownRole && row.operation !== null && <span className="muted">—</span>}</td></tr>)}
           </tbody></table></div>{selected.length === 0 && <div className="empty"><p>No included rows. Change or reset the active filters.</p>{filters.query && <button className="quiet" onClick={() => { changeFilter('query', undefined); searchInput.current?.focus(); }}>Clear search</button>} <button className="quiet" onClick={() => { setFilters({}); searchInput.current?.focus(); }}>Reset all filters</button></div>}
         </section>
         </>}
-      </>}
+      </div>}
     </main>
-    <footer><span>Read-only companion · no uploads or automatic retention · first slice</span></footer>
-  </div>;
+    <footer><span>Read-only companion · no uploads or saved workbook data</span><span>Only your light/dark preference is saved.</span></footer>
+    </EstateShell>
+  </>;
 }

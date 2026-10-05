@@ -99,12 +99,14 @@ test('overview brings charts and source evidence closer at actual desktop and ph
       const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
       return { activityTop: box('.activity').top + scrollY, activityHeight: box('.activity').height,
         procedureTop: box('.procedure-chart').top + scrollY, supervisionTop: box('.chart').top + scrollY,
-        sourceTop: box('.table-panel').top + scrollY, overflow: document.documentElement.scrollWidth > innerWidth };
+        sourceTop: box('.table-panel').top + scrollY, estateChrome: box('.estate-site-header').height,
+        overflow: document.documentElement.scrollWidth > innerWidth };
     });
     expect(geometry.overflow).toBe(false);
     expect(geometry.activityHeight).toBeLessThan(300);
-    expect(geometry.sourceTop).toBeLessThan(width === 390 ? 1900 : 1200);
-    if (width === 390) expect(geometry.activityTop).toBeLessThan(844);
+    // Shared chrome is additional to the tool; retain content-relative density with estate title sizes.
+    expect(geometry.sourceTop - geometry.activityTop).toBeLessThan(width === 390 ? 1200 : 750);
+    if (width === 390) expect(geometry.activityTop - geometry.estateChrome).toBeLessThan(844 + 44);
     else {
       expect(geometry.activityTop).toBe(geometry.procedureTop);
       expect(geometry.activityTop).toBe(geometry.supervisionTop);

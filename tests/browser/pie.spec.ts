@@ -90,7 +90,7 @@ test('pie views are optional per chart and preserve the filtered source rows and
   await page.keyboard.press('Enter');
   await expect(page.locator('tbody th')).toHaveText(['5', '6']);
   await page.getByLabel('From date').fill('01/');
-  await expect(page.locator('svg')).toHaveCount(0);
+  await expect(page.locator('.pie-chart')).toHaveCount(0); // Estate navigation icons are unrelated to result charts.
   await page.getByLabel('From date').fill('');
   await expect(role.getByRole('radio', { name: 'Pie', exact: true })).toBeChecked();
   await page.getByRole('button', { name: 'Reset filters', exact: true }).click();

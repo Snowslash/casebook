@@ -1,9 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { EstateSectionTitle } from '@sangeev/estate-ui';
 import type { CountGroup } from './logbook';
 import { pieSegments } from './pie';
+import { useChartTransition } from './useChartTransition';
 
 export type ChartView = 'bars' | 'pie';
-const PIE_COLOURS = ['#17665c', '#ad7939', '#57789a', '#976b82', '#688447', '#ab6151', '#605c89', '#447e83', '#8d744c', '#627b65', '#8c6570', '#53677c'];
+// Category graphics use the estate palette; labels/counts never rely on colour alone.
+const PIE_COLOURS = ['var(--estate-coral)', 'var(--estate-shoal)', 'var(--estate-leaf)', 'var(--estate-atlas)', 'var(--estate-mist-soft)', 'var(--estate-channel)', 'color-mix(in srgb, var(--estate-coral) 70%, var(--estate-ink))', 'color-mix(in srgb, var(--estate-leaf) 70%, var(--estate-atlas))', 'var(--estate-mist)', 'color-mix(in srgb, var(--estate-coral) 40%, var(--estate-foam))', 'color-mix(in srgb, var(--estate-shoal) 70%, var(--estate-foam))', 'var(--estate-deep)'];
 
 interface Props {
   title: string;
@@ -21,7 +24,8 @@ interface Props {
 
 export default function CountChart({ title, dimension, groups, activeKey, onSelect, className, monthly = false, totalTestId, view = 'bars', onViewChange, categoryKeys }: Props) {
   const viewId = useId();
-  const isPie = !monthly && view === 'pie';
+  const motion = useChartTransition(view, `casebook-${dimension.toLowerCase()}`, JSON.stringify([activeKey, groups.map(group => [group.key, group.count])]));
+  const isPie = !monthly && motion.view === 'pie';
   const scrollArea = useRef<HTMLDivElement>(null);
   const [overflows, setOverflows] = useState(false);
   useEffect(() => {
@@ -41,13 +45,13 @@ export default function CountChart({ title, dimension, groups, activeKey, onSele
   // The whole-file key order fixes colours while counts and ordering change under filters.
   const colours = new Map((categoryKeys ?? groups.map(group => group.key)).map((key, index) => [key, PIE_COLOURS[index % PIE_COLOURS.length]]));
   return <section className={`panel count-chart ${className}`} aria-label={title}>
-    <div className="panel-heading"><h2>{title}</h2><span className="chart-denominator"><b data-testid={totalTestId}>{total}</b> available</span></div>
+    <div className="panel-heading"><EstateSectionTitle>{title}</EstateSectionTitle><span className="chart-denominator"><b data-testid={totalTestId}>{total}</b> available</span></div>
     {!monthly && onViewChange && <fieldset className="chart-view"><legend className="sr-only">{title} chart type</legend>
-      <label><input type="radio" name={viewId} value="bars" checked={!isPie} onChange={() => onViewChange('bars')}/>Bars</label>
-      <label><input type="radio" name={viewId} value="pie" checked={isPie} onChange={() => onViewChange('pie')}/>Pie</label>
+      <label><input type="radio" name={viewId} value="bars" checked={view === 'bars'} onChange={() => onViewChange('bars')}/>Bars</label>
+      <label><input type="radio" name={viewId} value="pie" checked={view === 'pie'} onChange={() => onViewChange('pie')}/>Pie</label>
     </fieldset>}
     <p className="small muted chart-context">{monthly ? 'Months with entries, in date order.' : isPie ? 'Slices use the available total.' : 'Recorded labels, by count.'}{activeKey !== undefined && activeKey !== '' && <span className="chart-scope">{dimension} selection excluded.</span>}{overflows && <span className="chart-scroll-hint"> Scroll for more.</span>}</p>
-    {groups.length > 0 ? <>
+    <div ref={motion.body} className="chart-body">{groups.length > 0 ? <>
     {isPie && <svg className="pie-chart" viewBox="0 0 220 220" role="group" aria-label={`${title} pie chart`}>
       {pieSegments(groups).map((segment, index) => <path key={segment.key} className="pie-slice" d={segment.path} fill={colours.get(segment.key)}
         role="button" tabIndex={0} aria-pressed={activeKey === segment.key} aria-label={`${groupLabel(groups[index])} · pie slice`}
@@ -62,13 +66,13 @@ export default function CountChart({ title, dimension, groups, activeKey, onSele
         onClick={() => onSelect(group.key)}>
         {monthly ? <>
           <strong>{group.count}</strong>
-          <span className="month-track" aria-hidden="true"><span style={{ height: `${group.count / largest * 100}%` }}/></span>
+          <span className="month-track" aria-hidden="true"><span style={{ transform: `scaleY(${group.count / largest})` }}/></span>
           <span className="month-label">{group.label}</span>
         </> : <>
           <span className="bar-label">{isPie && <span className="pie-key" style={{ backgroundColor: colours.get(group.key) }} aria-hidden="true"/>}{group.label}{group.unknown && <small>Unfamiliar label · kept as recorded</small>}{group.missing && <small>Blank source value · included</small>}</span>
-          <strong>{group.count}</strong>{!isPie && <span className="bar-track" aria-hidden="true"><span style={{ width: `${group.count / largest * 100}%` }}/></span>}
+          <strong>{group.count}</strong>{!isPie && <span className="bar-track" aria-hidden="true"><span style={{ transform: `scaleX(${group.count / largest})` }}/></span>}
         </>}
       </button>)}
-    </div></> : <p className="empty">No procedures match these filters.</p>}
+    </div></> : <p className="empty">No procedures match these filters.</p>}</div>
   </section>;
 }

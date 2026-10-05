@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "description": "Casebook: a browser-memory-only, read-only explorer for operative eLogbook XLSX exports.",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.23.0 <23"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -17,19 +18,20 @@
     "check": "npm test && npm run build && npm run test:e2e"
   },
   "dependencies": {
+    "@sangeev/estate-ui": "file:vendor/sangeev-estate-ui-2.0.0-alpha.6.tgz",
+    "fflate": "0.8.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "read-excel-file": "9.3.10",
-    "fflate": "0.8.3",
     "saxen": "11.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@types/node": "^22.0.0",
     "typescript": "~5.9.3",
     "vite": "8.3.2",
-    "vitest": "5.0.3",
-    "@playwright/test": "1.63.0"
+    "vitest": "5.0.3"
   }
 }

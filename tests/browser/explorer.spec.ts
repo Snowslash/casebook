@@ -32,17 +32,18 @@ test('welcome explains the workflow without a separate instruction card or eyebr
 test('header and browser tab use the chosen Casebook name', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle('Casebook');
-  await expect(page.getByRole('banner').locator('.identity strong')).toHaveText('Casebook');
-  await expect(page.getByRole('banner').locator('.brand-mark')).toHaveText('CB');
+  await expect(page.locator('.topbar .identity strong')).toHaveText('Casebook');
+  await expect(page.locator('.topbar .brand-mark')).toHaveText('CB');
   await expect(page.getByRole('banner')).not.toContainText('Operation Logbook Explorer');
-  await expect(page.getByRole('banner').getByRole('button', { name: 'Open .xlsx' })).toBeVisible();
+  await expect(page.locator('.topbar').getByRole('button', { name: 'Open .xlsx' })).toBeVisible();
 });
 
 test('footer omits the authority sentence but keeps the privacy information', async ({ page }) => {
   await page.goto('/');
   const footer = page.getByRole('contentinfo');
   await expect(footer).not.toContainText('The official eLogbook remains authoritative.');
-  await expect(footer).toHaveText('Read-only companion · no uploads or automatic retention · first slice');
+  await expect(footer).toContainText('Read-only companion · no uploads or saved workbook data');
+  await expect(footer).toContainText('Only your light/dark preference is saved.');
 });
 
 test('explorer heading keeps sheet and count without repeated guidance', async ({ page }) => {
@@ -75,7 +76,7 @@ test('selection card keeps live counts and quality flags without redundant copy'
 
 test('header tagline describes exploring the operative logbook', async ({ page }) => {
   await page.goto('/');
-  const header = page.getByRole('banner');
+  const header = page.locator('.topbar');
   await expect(header.getByText('Explore your operative logbook', { exact: true })).toBeVisible();
   await expect(header).not.toContainText('A clearer view of recorded experience');
   await expect(header.locator('.eyebrow')).toHaveCount(0);
