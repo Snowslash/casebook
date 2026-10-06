@@ -6,7 +6,7 @@ import { aggregateHospitals, aggregateMonths, aggregateProcedures, filterRows, t
 function row(sourceRow: number, overrides: Partial<ProcedureRow> = {}): ProcedureRow {
   return { sourceRow, date: '2026-01-12', dateRaw: '2026-01-12', dateIssue: null,
     operation: 'Alpha', hospital: 'North', supervision: 'Performed', validation: 'Confirmed',
-    duplicate: false, unknownRole: false, ...overrides };
+    duplicate: false, unknownRole: false, cepod: null, ...overrides };
 }
 const rows = [
   row(2, { date: '2026-02-01', operation: 'Beta', duplicate: true }),

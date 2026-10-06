@@ -17,9 +17,13 @@ ROWS = [
     ('2026-02-24', 'Synthetic procedure B', 'Assisting', 'Synthetic hospital South'),
     (None, 'Synthetic procedure A', 'Assisting', 'Synthetic hospital North'),
 ]
+# Illustrative values only; numeric 7 has no asserted eLogbook meaning.
+CEPOD = ['Synthetic category A', 'Synthetic category B', 'Synthetic category A',
+         7, 7, None, 'Synthetic unfamiliar category', '7', 'Synthetic category A']
 NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'
 REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
-strings = list(dict.fromkeys(HEADERS + [v for row in ROWS for v in row[1:] if v]))
+strings = list(dict.fromkeys(HEADERS + [v for row in ROWS for v in row[1:] if v]
+                             + [v for v in CEPOD if isinstance(v, str)]))
 
 def string_cell(address, value):
     return f'<c r="{address}" t="s"><v>{strings.index(value)}</v></c>'
@@ -33,6 +37,11 @@ for n, (day, operation, supervision, hospital) in enumerate(ROWS, 2):
     cells += string_cell(f'B{n}', operation)
     if hospital:
         cells += string_cell(f'C{n}', hospital)
+    cepod = CEPOD[n - 2]
+    if isinstance(cepod, str):
+        cells += string_cell(f'H{n}', cepod)
+    elif cepod is not None:
+        cells += f'<c r="H{n}"><v>{cepod}</v></c>'
     if supervision:
         cells += string_cell(f'I{n}', supervision)
     sheet_rows.append(f'<row r="{n}">{cells}</row>')

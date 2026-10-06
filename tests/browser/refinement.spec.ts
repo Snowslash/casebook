@@ -100,13 +100,15 @@ test('overview brings charts and source evidence closer at actual desktop and ph
       return { activityTop: box('.activity').top + scrollY, activityHeight: box('.activity').height,
         procedureTop: box('.procedure-chart').top + scrollY, supervisionTop: box('.chart').top + scrollY,
         sourceTop: box('.table-panel').top + scrollY, estateChrome: box('.estate-site-header').height,
+        cepodRow: box('.cepod-filter').height,
         overflow: document.documentElement.scrollWidth > innerWidth };
     });
     expect(geometry.overflow).toBe(false);
     expect(geometry.activityHeight).toBeLessThan(300);
     // Shared chrome is additional to the tool; retain content-relative density with estate title sizes.
     expect(geometry.sourceTop - geometry.activityTop).toBeLessThan(width === 390 ? 1200 : 750);
-    if (width === 390) expect(geometry.activityTop - geometry.estateChrome).toBeLessThan(844 + 44);
+    // CEPOD now adds one visible labelled filter row on phones; budget that measured row.
+    if (width === 390) expect(geometry.activityTop - geometry.estateChrome).toBeLessThan(844 + 44 + geometry.cepodRow);
     else {
       expect(geometry.activityTop).toBe(geometry.procedureTop);
       expect(geometry.activityTop).toBe(geometry.supervisionTop);

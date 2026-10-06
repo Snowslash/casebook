@@ -3,11 +3,15 @@ import { Parser } from 'saxen';
 
 export class ImportError extends Error {}
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
+export const MAX_SOURCE_COLUMNS = 128;
 const MAX_EXPANDED = 20 * 1024 * 1024;
 
 // Inspect structure only. Never follow relationships, evaluate formulas or expose parser errors.
 export function guardWorkbook(bytes: Uint8Array): void {
   if (bytes.length > MAX_FILE_BYTES) throw new ImportError('File exceeds the 5 MiB limit.');
+  if ([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1].every((value, index) => bytes[index] === value)) {
+    throw new ImportError('Encrypted or legacy Excel containers are not supported. Open the file in Excel and save an unencrypted .xlsx copy, then select that copy. Nothing was imported.');
+  }
   let total = 0;
   let entries = 0;
   const files = unzipSync(bytes, { filter: info => {
@@ -57,9 +61,11 @@ export function guardWorkbook(bytes: Uint8Array): void {
         if ((tag === 'row' || tag === 'col') && ['1','true'].includes(attrs.hidden)) throw new ImportError('Hidden rows or columns are not supported.');
         if (tag === 'row' && (!/^\d+$/.test(attrs.r) || Number(attrs.r) > 20000 || Number(attrs.r) < 1)) throw new ImportError('Worksheet row limit is 20000.');
         if (tag === 'c') {
+          if (attrs.t === 'd') throw new ImportError('Textual date cells are not supported. Use numeric Excel dates or date-times. Nothing was imported.');
           const match = /^([A-Z]+)([1-9]\d*)$/.exec(attrs.r ?? '');
           if (!match || Number(match[2]) > 20000) throw new ImportError('Worksheet row limit is 20000; explicit cell coordinates are required.');
-          if (match[1].length > 1 || match[1] > 'V') throw new ImportError('This slice expects the original 22 columns only.');
+          const column = [...match[1]].reduce((n, letter) => n * 26 + letter.charCodeAt(0) - 64, 0);
+          if (column > MAX_SOURCE_COLUMNS) throw new ImportError('Worksheet source column limit is 128.');
         }
       }
     });
