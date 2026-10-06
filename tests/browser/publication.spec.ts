@@ -1,20 +1,58 @@
 import { test, expect, type Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+
+function pagesHeaderRules() {
+  return readFileSync('dist/_headers', 'utf8').trim().split(/\n\s*\n/).map(block => {
+    const [path, ...lines] = block.split('\n');
+    const headers = Object.fromEntries(lines.map(line => {
+      const colon = line.indexOf(':');
+      expect(colon).toBeGreaterThan(0);
+      return [line.slice(0, colon).trim().toLowerCase(), line.slice(colon + 1).trim()];
+    }));
+    return { path, headers };
+  });
+}
+
+function pagesHeadersFor(pathname: string): Record<string, string> {
+  // This fixture deliberately supports only the global and exact-path rules
+  // used here. Live Pages verification remains a separate release gate.
+  return Object.assign({}, ...pagesHeaderRules().filter(rule => rule.path === '/*' || rule.path === pathname).map(rule => rule.headers));
+}
 
 // Vite preview does not interpret _headers. Apply the exact built policy to
 // real browser responses to test enforcement, not to claim a Pages deployment.
 async function applyPagesHeaders(page: Page) {
-  const lines = readFileSync('dist/_headers', 'utf8').trim().split('\n');
-  expect(lines.shift()).toBe('/*');
-  const headers = Object.fromEntries(lines.map(line => {
-    const colon = line.indexOf(':');
-    return [line.slice(0, colon).trim().toLowerCase(), line.slice(colon + 1).trim()];
-  }));
   await page.route('**/*', async route => {
     const response = await route.fetch();
+    const headers = pagesHeadersFor(new URL(route.request().url()).pathname);
     await route.fulfill({ response, headers: { ...response.headers(), ...headers } });
   });
-  return headers;
+  return pagesHeadersFor('/app/');
+}
+
+test('no-transform is restricted to the two HTML entrypoints without weakening the security policy', () => {
+  expect(pagesHeaderRules().map(rule => rule.path)).toEqual(['/*', '/', '/app/']);
+  const csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+  for (const path of ['/', '/app/']) {
+    expect(pagesHeadersFor(path)['cache-control']).toBe('public, max-age=0, must-revalidate, no-transform');
+    expect(pagesHeadersFor(path)['content-security-policy']).toBe(csp);
+  }
+  const assets = readdirSync('dist/assets').map(name => `/assets/${name}`);
+  expect(assets.length).toBeGreaterThan(0);
+  for (const path of [...assets, '/synthetic-logbook.xlsx', '/licenses/MIT-Casebook.txt']) {
+    expect(pagesHeadersFor(path)['cache-control']).toBeUndefined();
+    expect(pagesHeadersFor(path)['content-security-policy']).toBe(csp);
+  }
+});
+
+for (const path of ['/', '/app/']) {
+  test(`the scoped no-transform response header reaches the browser on ${path}`, async ({ page }) => {
+    await applyPagesHeaders(page);
+    const response = await page.goto(path);
+    expect(response!.headers()['cache-control']).toBe('public, max-age=0, must-revalidate, no-transform');
+    expect(response!.headers()['x-frame-options']).toBe('DENY');
+    await expect(page.getByRole('heading', { name: path === '/' ? 'Casebook' : 'Explore your eLogbook export', exact: true })).toBeVisible();
+  });
 }
 
 test('the build carries the Pages header file and all first-party and font notices', async ({ request }) => {

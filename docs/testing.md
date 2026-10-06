@@ -48,7 +48,7 @@ The archive SHA-256 is `d062371402bb538c008888255597349d5cf7425d5bb51e399f7b3cf9
 
 ## Verification status
 
-The compatibility and CEPOD changes pass **98 unit/integration tests and 74 Chromium browser tests**, plus TypeScript checking and the production build through `npm run check`. `git diff --check` passes. The 23 importer compatibility tests also pass under `TZ=Pacific/Kiritimati` and `TZ=America/Los_Angeles`.
+The compatibility, CEPOD and scoped HTML-header changes pass **98 unit/integration tests and 77 Chromium browser tests**, plus TypeScript checking and the production build through `npm run check`. `git diff --check` passes. The 23 importer compatibility tests were also verified under `TZ=Pacific/Kiritimati` and `TZ=America/Los_Angeles` for the compatibility release.
 
 Independent read-only review passed after fixes for textual-date coercion and colliding CEPOD display labels. Both findings have unit and browser regressions; no blocking findings remain. This is a code-review result, not a security certification.
 
@@ -61,5 +61,6 @@ Coverage includes:
 - Bars/Pie switching, immediate count updates, reduced-motion changes, native-API fallback and cancellation during rapid switch/clear/replacement or overlapping chart transitions.
 - Actual theme control, cookie precedence, blocked-storage fallback, reload, rendered text/focus checks and responsive containment. The new CEPOD journeys exercise 1440px, 390px and 320px in both themes; CEPOD fills its own row on narrow screens. The phone density budget explicitly includes this added row rather than reducing shared typography or control sizes.
 - No upload/fetch/XHR or external asset requests in the exercised import/filter journeys; only the approved theme preference persists. No workbook data, filters or chart choices are retained after reload. Licence/notice distribution, the Pages header artifact, its synthetic workflow under HTTP headers and iframe refusal remain covered.
+- The scoped `no-transform` regressions first failed against the previous header artifact, then passed with overrides for `/` and `/app/` only. The tests check the unchanged CSP, absence of the cache override on built assets, and browser-visible HTML headers. This test fixture applies the built rules locally; actual Cloudflare injection suppression requires the separate live checks in [Deployment](deployment.md).
 
 The landing evidence is a refreshed 1440 × 1080 crop of the actual synthetic light-mode explorer, including CEPOD. Screenshots are synthetic; no private export was used for these changes. These local Chromium checks do not establish live-deployment, Firefox or physical-device behaviour. Synthetic tests are not clinical validation, a full accessibility audit or security certification. Fresh-export compatibility and larger-file performance remain unvalidated.
