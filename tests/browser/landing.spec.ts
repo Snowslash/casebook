@@ -13,6 +13,22 @@ test('production build emits separate landing and explorer documents', async ({ 
   }
 });
 
+for (const route of ['/', '/app/']) {
+  test(`simplified estate navigation on ${route} has exactly Projects and GitHub`, async ({ page }) => {
+    await page.goto(route);
+    const header = page.getByRole('banner');
+    const links = header.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link');
+    await expect(links).toHaveCount(2);
+    await expect(links.nth(0)).toHaveAccessibleName('Projects');
+    await expect(links.nth(0)).toHaveAttribute('href', 'https://sangeev.me/#projects');
+    await expect(links.nth(1)).toHaveAccessibleName('GitHub');
+    await expect(links.nth(1)).toHaveAttribute('href', 'https://github.com/Snowslash');
+    await expect(header.locator('[aria-current]')).toHaveCount(0);
+    await expect(page.locator('html')).toHaveAttribute('data-estate-ui', '2.0.0-alpha.7');
+    await expect(header.getByRole('button', { name: 'Switch to light mode' })).toBeVisible();
+  });
+}
+
 for (const width of [1440, 390, 320]) {
   test(`landing links to the preserved explorer at ${width}px in both themes`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -22,7 +38,7 @@ for (const width of [1440, 390, 320]) {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Casebook', exact: true })).toBeVisible();
     await expect(page.locator('[data-estate-layout="landing"]')).toHaveCount(1);
-    await expect(page.locator('html')).toHaveAttribute('data-estate-ui', '2.0.0-alpha.6');
+    await expect(page.locator('html')).toHaveAttribute('data-estate-ui', '2.0.0-alpha.7');
     await expect(page.locator('h1')).toHaveCount(1);
     const open = page.getByRole('link', { name: 'Open Casebook', exact: true });
     const source = page.getByRole('link', { name: 'Source on GitHub' });

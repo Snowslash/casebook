@@ -122,7 +122,7 @@ export default function App() {
   </div>;
 
   return <>
-    <PublicEstateHeader current="casebook" theme={theme} onToggleTheme={toggleTheme}/>
+    <PublicEstateHeader current="casebook" navigation="projects" theme={theme} onToggleTheme={toggleTheme}/>
     <EstateShell variant="wide-app" className="app-shell">
     <div className="topbar">
       <div className="identity"><span className="brand-mark" aria-hidden="true">CB</span><div><strong>Casebook</strong><span className="tagline">Explore your operative logbook</span></div></div>

@@ -84,5 +84,5 @@ backups/
 # The only public workbook is this authored synthetic acceptance fixture.
 !/public/synthetic-logbook.xlsx
 # Exact reviewed shared-theme package; no other archives belong in this project.
-!/vendor/sangeev-estate-ui-2.0.0-alpha.6.tgz
+!/vendor/sangeev-estate-ui-2.0.0-alpha.7.tgz
 # Keep package-lock.json versioned; do not ignore dependency lockfiles.

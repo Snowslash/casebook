@@ -4,6 +4,17 @@ import { existsSync, readFileSync } from 'node:fs';
 const text = (path: string) => readFileSync(path, 'utf8');
 
 describe('landing and explorer route contract', () => {
+  it('pins the approved archive and opts both routes into Projects navigation', () => {
+    const pin = 'file:vendor/sangeev-estate-ui-2.0.0-alpha.7.tgz';
+    expect(text('.gitignore')).toContain(`!/${pin.slice('file:'.length)}`);
+    expect(JSON.parse(text('package.json')).dependencies['@sangeev/estate-ui']).toBe(pin);
+    const lock = JSON.parse(text('package-lock.json'));
+    expect(lock.packages[''].dependencies['@sangeev/estate-ui']).toBe(pin);
+    expect(lock.packages['node_modules/@sangeev/estate-ui'].version).toBe('2.0.0-alpha.7');
+    for (const path of ['src/App.tsx', 'src/landing/LandingPage.tsx']) {
+      expect(text(path)).toMatch(/<PublicEstateHeader[^>]*navigation="projects"/);
+    }
+  });
   it('keeps distinct root landing and nested explorer entrypoints with the same CSP', () => {
     expect(existsSync('app/index.html')).toBe(true);
     const landing = text('index.html');

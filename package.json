@@ -18,7 +18,7 @@
     "check": "npm test && npm run build && npm run test:e2e"
   },
   "dependencies": {
-    "@sangeev/estate-ui": "file:vendor/sangeev-estate-ui-2.0.0-alpha.6.tgz",
+    "@sangeev/estate-ui": "file:vendor/sangeev-estate-ui-2.0.0-alpha.7.tgz",
     "fflate": "0.8.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",

@@ -4,7 +4,7 @@ import overview from '../assets/casebook-overview.webp';
 export default function LandingPage() {
   const { theme, toggleTheme } = useEstateTheme();
   return <>
-    <PublicEstateHeader current="casebook" theme={theme} onToggleTheme={toggleTheme}/>
+    <PublicEstateHeader current="casebook" navigation="projects" theme={theme} onToggleTheme={toggleTheme}/>
     <EstateShell variant="landing" className="casebook-landing">
       <main>
         <section className="hero" aria-labelledby="page-title">
