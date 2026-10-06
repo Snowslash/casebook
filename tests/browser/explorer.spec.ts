@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 const fixture = 'public/synthetic-logbook.xlsx';
 async function openFixture(page: Page) {
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles(fixture);
   await expect(page.getByRole('heading', { name: 'Review your import' })).toBeVisible();
   await expect(page.getByTestId('preview-count')).toHaveText('9 logged procedures');
@@ -11,7 +11,7 @@ async function openFixture(page: Page) {
 }
 
 test('welcome copy starts at its heading without the decorative eyebrow', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app/');
   const welcome = page.locator('.welcome-copy');
   await expect(welcome.getByRole('heading', { name: 'Explore your eLogbook export' })).toBeVisible();
   await expect(welcome.locator('.eyebrow')).toHaveCount(0);
@@ -20,7 +20,7 @@ test('welcome copy starts at its heading without the decorative eyebrow', async 
 });
 
 test('welcome explains the workflow without a separate instruction card or eyebrow', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app/');
   const note = page.locator('.welcome-copy');
   await expect(page.locator('.welcome-note')).toHaveCount(0);
   await expect(note.locator('.eyebrow')).toHaveCount(0);
@@ -30,7 +30,7 @@ test('welcome explains the workflow without a separate instruction card or eyebr
 });
 
 test('header and browser tab use the chosen Casebook name', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app/');
   await expect(page).toHaveTitle('Casebook');
   await expect(page.locator('.topbar .identity strong')).toHaveText('Casebook');
   await expect(page.locator('.topbar .brand-mark')).toHaveText('CB');
@@ -39,7 +39,7 @@ test('header and browser tab use the chosen Casebook name', async ({ page }) => 
 });
 
 test('screens omit repeated footer and header status copy while welcome privacy stays near import', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app/');
   const checkCopy = async () => {
     await expect(page.getByRole('contentinfo')).toHaveCount(0);
     await expect(page.locator('body')).not.toContainText('Read-only companion');
@@ -106,7 +106,7 @@ test('selection card keeps live counts and quality flags without redundant copy'
 });
 
 test('header tagline describes exploring the operative logbook', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app/');
   const header = page.locator('.topbar');
   await expect(header.getByText('Explore your operative logbook', { exact: true })).toBeVisible();
   await expect(header).not.toContainText('A clearer view of recorded experience');
@@ -116,7 +116,7 @@ test('header tagline describes exploring the operative logbook', async ({ page }
 });
 
 test('all screens omit eyebrows while source table controls remain usable', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app/');
   await expect(page.locator('.eyebrow')).toHaveCount(0);
   await page.getByLabel('Choose .xlsx file').setInputFiles(fixture);
   await expect(page.getByRole('heading', { name: 'Review your import' })).toBeVisible();
@@ -208,7 +208,7 @@ test('untrusted labels render as text, not HTML', async ({ page }) => {
   const files = unzipSync(readFileSync(fixture));
   const value = '&lt;img src=x onerror=alert(1)&gt;';
   files['xl/sharedStrings.xml'] = strToU8(strFromU8(files['xl/sharedStrings.xml']).replace('Synthetic unknown role', value));
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles({ name: 'synthetic.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from(zipSync(files)) });
   await page.getByRole('button', { name: 'Explore procedures' }).click();
   await expect(page.locator('tbody').getByText('<img src=x onerror=alert(1)>', { exact: true })).toBeVisible();
@@ -240,7 +240,7 @@ test('clearing while file reading is pending prevents stale import resurrection'
       });
     };
   });
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles(fixture);
   await expect(page.getByRole('status')).toContainText('Reading workbook locally');
   await page.getByRole('button', { name: 'Clear file', exact: true }).click();

@@ -6,8 +6,19 @@
   <meta name="theme-color" content="#061e1d" />
   <meta name="referrer" content="no-referrer" />
   <meta name="description" content="Casebook is a read-only operative eLogbook explorer. Review XLSX exports, filter logged procedures and inspect source rows in browser memory." />
+  <link rel="canonical" href="https://casebook.sangeev.me/" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" />
   <title>Casebook</title>
 </head>
-<body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
+<body>
+  <div id="root"><main class="casebook-fallback">
+    <a href="https://sangeev.me/#projects">Projects</a>
+    <h1>Casebook</h1>
+    <p>Explore your operative logbook. Review an eLogbook .xlsx export, filter logged procedures and inspect the source rows behind each chart.</p>
+    <p>Workbook processing stays in browser memory. Casebook does not upload or save your workbook.</p>
+    <p><a href="./app/">Open Casebook</a> · <a href="https://github.com/Snowslash/casebook">Source on GitHub</a></p>
+    <noscript><p>The explorer needs JavaScript to process a workbook locally.</p></noscript>
+  </main></div>
+  <script type="module" src="/src/landing/main.tsx"></script>
+</body>
 </html>

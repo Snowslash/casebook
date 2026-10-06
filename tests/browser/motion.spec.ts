@@ -3,7 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 const fixture = 'public/synthetic-logbook.xlsx';
 async function explore(page: Page) {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles(fixture);
   await page.getByRole('button', { name: 'Explore procedures' }).click();
 }

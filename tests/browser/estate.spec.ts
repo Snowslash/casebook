@@ -34,7 +34,7 @@ async function contrast(page: Page, selector: string, focus = false) {
 test('estate chrome and self-hosted type replace local styling without changing the task', async ({ page }) => {
   const requests: string[] = [];
   page.on('request', r => requests.push(r.url()));
-  await page.goto('/');
+  await page.goto('/app/');
   const header = page.getByRole('banner');
   await expect(header.locator('.estate-wordmark')).toHaveText('Sangeev.me');
   await expect(header.locator('.estate-wordmark')).toHaveAttribute('href', 'https://sangeev.me');
@@ -55,7 +55,7 @@ test('estate chrome and self-hosted type replace local styling without changing 
 test('only the theme persists through import, exact drill-down, reset, clear and reload', async ({ page, context }) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/app/');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(await page.evaluate(() => localStorage.length)).toBe(0);
   await page.getByRole('button', { name: 'Switch to light mode' }).click();
@@ -91,7 +91,7 @@ for (const malformed of [false, true]) {
   test(`theme bootstrap uses ${malformed ? 'storage after a malformed cookie' : 'the estate cookie ahead of stale storage'}`, async ({ page, context }) => {
     await context.addCookies([{ name: key, value: malformed ? '%E0%A4%A' : 'light', url: 'http://127.0.0.1:4173' }]);
     await page.addInitScript(() => localStorage.setItem('sangeevSiteTheme', 'dark'));
-    await page.goto('/');
+    await page.goto('/app/');
     await expect(page.locator('html')).toHaveAttribute('data-theme', malformed ? 'dark' : 'light');
   });
 }
@@ -101,7 +101,7 @@ test('unavailable preference storage never blocks import or the theme control', 
     Object.defineProperty(window, 'localStorage', { get() { throw new Error('Storage blocked'); } });
     Object.defineProperty(document, 'cookie', { get() { throw new Error('Cookies blocked'); }, set() { throw new Error('Cookies blocked'); } });
   });
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByRole('button', { name: 'Switch to light mode' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await explore(page);
@@ -111,7 +111,7 @@ test('unavailable preference storage never blocks import or the theme control', 
 for (const width of [1536, 390, 320]) {
   test(`estate geometry, focus and rendered text remain usable at ${width}px in both themes`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1024 });
-    await page.goto('/');
+    await page.goto('/app/');
     await explore(page);
     await expect(page.locator('.estate-site-header')).toBeVisible();
     for (const theme of ['dark', 'light']) {
@@ -148,7 +148,7 @@ for (const width of [1536, 390, 320]) {
 }
 
 test('theme switches do not tween control backgrounds beneath already-switched text', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/app/');
   await explore(page);
   for (const next of ['light', 'dark']) {
     await page.getByRole('button', { name: `Switch to ${next} mode` }).click();

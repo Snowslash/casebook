@@ -4,14 +4,14 @@ import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 
 const fixture = 'public/synthetic-logbook.xlsx';
 async function explore(page: Page) {
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles(fixture);
   await page.getByRole('button', { name: 'Explore procedures' }).click();
 }
 
 test('welcome leads with the workbook task and nearby privacy, without an instruction card', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/app/');
   const welcome = page.locator('.welcome');
   await expect(welcome.getByRole('heading', { name: 'Explore your eLogbook export', exact: true })).toBeVisible();
   await expect(page.getByText('Open a window into your experience.')).toHaveCount(0);
@@ -175,7 +175,7 @@ test('larger synthetic month and procedure lists preserve every category and exa
   files[sheet] = strToU8(original.replace(/<sheetData>.*?<\/sheetData>/, `<sheetData>${heading}${rows.join('')}</sheetData>`));
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 844 });
-    await page.goto('/');
+    await page.goto('/app/');
     await page.getByLabel('Choose .xlsx file').setInputFiles({ name: 'synthetic-volume.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from(zipSync(files)) });
     await expect(page.getByTestId('preview-count')).toHaveText('72 logged procedures');
     await page.getByRole('button', { name: 'Explore procedures' }).click();

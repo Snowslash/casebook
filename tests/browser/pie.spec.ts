@@ -4,7 +4,7 @@ import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 
 const fixture = 'public/synthetic-logbook.xlsx';
 async function explore(page: Page, buffer?: Buffer) {
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles(buffer ? { name: 'synthetic-pies.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer } : fixture);
   await page.getByRole('button', { name: 'Explore procedures' }).click();
 }

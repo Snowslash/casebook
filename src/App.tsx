@@ -142,7 +142,7 @@ export default function App() {
           <button className="primary estate-primary-action" onClick={() => input.current?.click()}>Choose a workbook <span aria-hidden="true">→</span></button>
           <p className="welcome-privacy">No uploads. No saved working data.</p>
           <p className="small muted">Native .xlsx · one worksheet · up to 5 MiB</p>
-          <a className="sample-link" href="./synthetic-logbook.xlsx" download>Download the wholly synthetic example</a>
+          <a className="sample-link" href="/synthetic-logbook.xlsx" download>Download the wholly synthetic example</a>
           <p className="small muted">Open the example here to try it without your own data.</p>
         </div>
       </section>}

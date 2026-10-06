@@ -5,7 +5,7 @@ import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 const fixture = 'public/synthetic-logbook.xlsx';
 const encoded = (value: string | null) => JSON.stringify(value);
 async function explore(page: Page) {
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles(fixture);
   await expect(page.getByTestId('preview-count')).toHaveText('9 logged procedures');
   await page.getByRole('button', { name: 'Explore procedures' }).click();
@@ -101,7 +101,7 @@ test('missing procedure stays distinct from a literal placeholder and all charts
   files[sheet] = strToU8(strFromU8(files[sheet])
     .replace(/<c r="B9".*?<\/c>/, '')
     .replace(/<c r="B8".*?<\/c>/, '<c r="B8" t="inlineStr"><is><t>Missing procedure</t></is></c>'));
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles({ name: 'synthetic-missing.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from(zipSync(files)) });
   await page.getByRole('button', { name: 'Explore procedures' }).click();
   const mix = page.getByRole('region', { name: 'Procedure mix', exact: true });
@@ -132,7 +132,7 @@ test('long procedure lists keep every exact label reachable in a contained scrol
     return row === 1 ? cell : `<c r="B${row}" t="inlineStr"><is><t>${label(row - 1)}</t></is></c>`;
   }));
   await page.setViewportSize({ width: 390, height: 900 });
-  await page.goto('/');
+  await page.goto('/app/');
   await page.getByLabel('Choose .xlsx file').setInputFiles({ name: 'synthetic-long-labels.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from(zipSync(files)) });
   await page.getByRole('button', { name: 'Explore procedures' }).click();
   const mix = page.getByRole('region', { name: 'Procedure mix', exact: true });

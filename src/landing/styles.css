@@ -1,0 +1,29 @@
+@import '@sangeev/estate-ui/contract.css';
+
+.casebook-landing main { padding-bottom: 3rem; }
+.casebook-landing p { margin: 0 0 1rem; }
+.casebook-landing .hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); align-items: center; gap: 3rem; padding: 3.5rem 0; border-bottom: 1px solid var(--estate-rule); }
+.casebook-landing .back-link { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; margin-bottom: 1.5rem; color: var(--muted-foreground); }
+.casebook-landing .project-summary { margin: .75rem 0 1rem; font-family: var(--estate-font-heading); font-size: clamp(1.5rem, 2.8vw, 2.125rem); line-height: 1.3; }
+.casebook-landing .lede { max-width: 60ch; color: var(--muted-foreground); font-size: 1.125rem; line-height: 1.6; }
+.casebook-landing .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; }
+.casebook-landing .hero-boundary { align-self: end; }
+.casebook-landing .hero-boundary p { font-size: .94rem; line-height: 1.6; }
+.casebook-landing .hero-boundary p:last-child { margin-bottom: 0; }
+.casebook-landing .evidence, .casebook-landing .details { padding: 3rem 0; border-bottom: 1px solid var(--estate-rule); }
+.casebook-landing .estate-section-title { margin-bottom: 1.5rem; }
+.casebook-landing dl { margin: 0; }
+.casebook-landing dl > div { display: grid; grid-template-columns: minmax(160px, .4fr) minmax(0, 1fr); gap: 1.5rem; padding: 1rem 0; border-top: 1px solid var(--estate-rule); }
+.casebook-landing dt { font-weight: 700; }
+.casebook-landing dd { margin: 0; color: var(--muted-foreground); }
+.casebook-landing .limits { padding-top: 3rem; }
+.casebook-landing .limits p { max-width: 75ch; color: var(--muted-foreground); }
+.casebook-landing .limits a { display: inline-flex; align-items: center; min-height: 44px; gap: .4rem; }
+.casebook-fallback { max-width: 60ch; margin: 3rem auto; padding: 1.5rem; }
+
+@media (max-width: 760px) {
+  .casebook-landing .hero { grid-template-columns: minmax(0, 1fr); gap: 2rem; padding: 2rem 0; }
+  .casebook-landing .evidence, .casebook-landing .details { padding: 2rem 0; }
+  .casebook-landing dl > div { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+  .casebook-landing .limits { padding-top: 2rem; }
+}

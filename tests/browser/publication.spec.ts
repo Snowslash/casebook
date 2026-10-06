@@ -32,7 +32,7 @@ test('the HTTP-header policy preserves the synthetic import and exact chart dril
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-  const response = await page.goto('/');
+  const response = await page.goto('/app/');
   for (const [name, value] of Object.entries(headers)) expect(response!.headers()[name]).toBe(value);
   await page.getByLabel('Choose .xlsx file').setInputFiles('public/synthetic-logbook.xlsx');
   await expect(page.getByTestId('preview-count')).toHaveText('9 logged procedures');
@@ -59,11 +59,11 @@ test('the response policy prevents framing even by the same origin', async ({ pa
   await applyPagesHeaders(page);
   const blocked: string[] = [];
   page.on('console', message => { if (message.type() === 'error' && /frame-ancestors|X-Frame-Options/i.test(message.text())) blocked.push(message.text()); });
-  await page.goto('/');
+  await page.goto('/app/');
   await page.evaluate(() => {
     const frame = document.createElement('iframe');
     frame.title = 'Synthetic framing probe';
-    frame.src = '/';
+    frame.src = '/app/';
     document.body.append(frame);
   });
   await expect.poll(() => blocked.length).toBeGreaterThan(0);

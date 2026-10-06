@@ -2,6 +2,9 @@
 
 A local-first, read-only explorer for UK operative eLogbook `.xlsx` exports. Counts represent logged procedures, not unique patients, theatre sessions, competence or official portfolio points.
 
+- Project page: [casebook.sangeev.me](https://casebook.sangeev.me/)
+- Explorer: [casebook.sangeev.me/app/](https://casebook.sangeev.me/app/)
+
 ## Explore a workbook
 
 Open an `.xlsx` file, review the import, then explore monthly activity, procedure mix and supervision. Filter by date, procedure, supervision or hospital; search retained analytical fields across every view; inspect the exact included source rows.
@@ -16,7 +19,7 @@ Open an `.xlsx` file, review the import, then explore monthly activity, procedur
 ## Data and privacy
 
 - Workbook processing is in browser memory, with no upload endpoint, accounts, analytics, AI or automatic retention of workbook data. No backend or database is required.
-- Only the light/dark preference is saved, using the estate's `sangeevSiteTheme` localStorage key and `SameSite=Lax` cookie. On a future `sangeev.me` host, the preference cookie is shared across estate subdomains. A valid cookie takes precedence over origin-local storage; the first-visit default is dark. Storage failures do not prevent using the app.
+- Only the light/dark preference is saved, using the estate's `sangeevSiteTheme` localStorage key and `SameSite=Lax` cookie. On `sangeev.me`, the preference cookie is shared across estate subdomains. A valid cookie takes precedence over origin-local storage; the first-visit default is dark. Storage failures do not prevent using the app.
 - No workbook contents, filenames, filters or chart choices are saved. There is no IndexedDB or service worker. Reload or Clear removes the workbook's working state, but is not a guarantee of secure memory erasure; the theme preference remains. There is no saved workbook session or export/backup feature; keep your original workbook securely outside this repository.
 - Application state retains only operation date, operation label, supervision, hospital, validation status and row provenance/quality flags. Parsing temporarily reads the supplied workbook. Notes, consultant details, patient attributes and specialty parameters are not displayed or searched.
 - Use only wholly synthetic files for development, tests, screenshots and issue reports. Never commit clinical exports, patient-identifiable information or credentials. The only workbook intended for publication is the authored `public/synthetic-logbook.xlsx` example.
@@ -65,7 +68,7 @@ npm run build
 npm run preview
 ```
 
-Open **http://127.0.0.1:4173**. The server binds to loopback only; do not expose the development/preview server publicly. Download the synthetic example from the opening screen, select it with **Open .xlsx**, review the import and choose **Explore procedures**.
+Open **http://127.0.0.1:4173** for the project page, then choose **Open Casebook**, or go directly to **http://127.0.0.1:4173/app/**. The server binds to loopback only; do not expose the development/preview server publicly. Download the synthetic example from the explorer's opening screen, select it with **Open .xlsx**, review the import and choose **Explore procedures**.
 
 For editing, use `npm run dev`. The strict page CSP intentionally blocks network connections, including development hot reload; manually reload after changes. Prefer the production build/preview path for checks. Scripts, styles and workers are served locally, without runtime CDNs or remote fonts.
 
@@ -75,7 +78,9 @@ For editing, use `npm run dev`. The strict page CSP intentionally blocks network
 
 Casebook consumes the exact vendored `@sangeev/estate-ui@2.0.0-alpha.6` package in `vendor/`, pinned by `package-lock.json`. It uses the shared header, light/dark control, `wide-app` layout, Literata headings, Atkinson Hyperlegible Next UI type and theme-aware colours. Fonts are served with the app; their upstream licence texts are included in `public/licenses/` and copied unchanged into the build. No runtime font service is contacted. The archive includes the shared UI source and its MIT licence; a private registry or access to another repository is not needed to build Casebook.
 
-This is a Casebook integration, not an estate-wide release. The package recognises Casebook without inventing a hosted destination or marking a sibling current. Existing estate applications retain their previous package pins and the same visual contract. Hosting, a public Casebook address and adding a return link from the estate index remain separate deployment decisions.
+The root project page uses the shared `landing` shell; the explorer at `/app/` keeps `wide-app`. Both use the same header and theme control. The landing screenshot is a cropped capture of the actual explorer using only the nine-row synthetic example, compressed as WebP and served locally. It is not a mock interface or a clinical export.
+
+This is a Casebook integration, not an estate-wide package release. Existing estate applications retain their previous package pins. The header recognises Casebook without marking a sibling current; the Projects link returns to the main estate index.
 
 ### Verification commands
 
@@ -92,6 +97,8 @@ npm run fixture
 ## Cloudflare Pages
 
 This is a static Vite application. Connect the GitHub repository to **Cloudflare Pages**, not a Worker deployment, with these settings:
+
+The multi-page build emits `dist/index.html` for the project page and `dist/app/index.html` for the explorer. Publish the whole `dist` directory. The synthetic workbook stays at `/synthetic-logbook.xlsx`, so its download works from the nested app route. No host rewrite or new deployment project is needed for the route split.
 
 | Setting | Value |
 |---|---|
@@ -121,7 +128,7 @@ This is a narrow parser contract, not a general spreadsheet viewer:
 
 ## Project status
 
-The current synthetic suite passes **70 unit/integration tests and 60 Chromium browser tests**, plus TypeScript checking and a production build. Browser checks cover Bars/Pie switching, exact source-row drill-down, missing and unfamiliar labels, single/empty charts, keyboard activation, date validation and responsive overflow. Copy regressions keep the repeated footer, header status and chart captions absent while preserving import privacy information, available counts and active-selection scope. Motion checks include intermediate bar geometry with immediate counts, clicks through a paused crossfade, reduced-motion changes, native-API fallback and cancellation across rapid switch/clear/replacement and overlapping charts. Publication checks cover licence/notice distribution, the Pages header artifact, the synthetic workflow under its HTTP policy and refusal to load inside an iframe.
+The current synthetic suite passes **73 unit/integration tests and 64 Chromium browser tests**, plus TypeScript checking and a production build. Browser checks cover both built entrypoints, landing-to-app navigation, the nested-route example download, Bars/Pie switching, exact source-row drill-down, missing and unfamiliar labels, single/empty charts, keyboard activation, date validation and responsive overflow. Copy regressions keep the repeated footer, header status and chart captions absent while preserving import privacy information, available counts and active-selection scope. Motion checks include intermediate bar geometry with immediate counts, clicks through a paused crossfade, reduced-motion changes, native-API fallback and cancellation across rapid switch/clear/replacement and overlapping charts. Publication checks cover licence/notice distribution, the Pages header artifact, the synthetic workflow under its HTTP policy and refusal to load inside an iframe.
 
 Theme checks exercise the actual control, cookie precedence, blocked-storage fallback and reload. Only the theme preference persists; no workbook state, uploads or external asset requests were observed in the exercised journeys. Both themes are checked at 1536px, 390px and 320px for shared geometry, selected text contrast and keyboard focus. Colour changes are immediate so theme switching does not briefly put new text on an old background; chart motion remains separate. Density checks allow the additional estate header and shared title sizing rather than silently shrinking the package typography.
 
