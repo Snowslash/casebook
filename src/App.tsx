@@ -126,7 +126,7 @@ export default function App() {
     <EstateShell variant="wide-app" className="app-shell">
     <div className="topbar">
       <div className="identity"><span className="brand-mark" aria-hidden="true">CB</span><div><strong>Casebook</strong><span className="tagline">Explore your operative logbook</span></div></div>
-      <div className="header-actions"><span className="local-status"><i/> Local · in memory</span>
+      <div className="header-actions">
         {(book || loading || error) && <button className="quiet" onClick={clear}>Clear file</button>}
         <button className="primary estate-primary-action" onClick={() => input.current?.click()}>Open .xlsx <span aria-hidden="true">↗</span></button>
         <input hidden ref={input} type="file" accept=".xlsx" aria-label="Choose .xlsx file" onChange={event => { const file = event.target.files?.[0]; if (file) void openFile(file); }}/>
@@ -189,7 +189,7 @@ export default function App() {
           <details className="quality-details"><summary>Whole-file data quality</summary>{quality}<p className="small muted">Missing labels are not included in the label totals. Flags do not remove rows. All validation statuses remain included. Identical rows may be legitimate separate entries.</p></details>
         </aside>
 
-        <div className="overview-heading"><p>Select a chart category to filter. Available counts use the other filters.</p></div>
+        <div className="overview-heading"><p>Select a chart category to filter.</p></div>
         <section className="analysis-grid" aria-label="Overview charts">
           <CountChart title="Monthly activity" dimension="Month" className="activity" groups={months} activeKey={optionValue(filters.month)} onSelect={key => toggleCategory('month', key)} monthly/>
           <CountChart title="Procedure mix" dimension="Procedure" className="procedure-chart" groups={procedureGroups} activeKey={optionValue(filters.procedure)} onSelect={key => toggleCategory('procedure', key)}
@@ -207,7 +207,6 @@ export default function App() {
         </>}
       </div>}
     </main>
-    <footer><span>Read-only companion · no uploads or saved workbook data</span><span>Only your light/dark preference is saved.</span></footer>
     </EstateShell>
   </>;
 }

@@ -38,12 +38,43 @@ test('header and browser tab use the chosen Casebook name', async ({ page }) => 
   await expect(page.locator('.topbar').getByRole('button', { name: 'Open .xlsx' })).toBeVisible();
 });
 
-test('footer omits the authority sentence but keeps the privacy information', async ({ page }) => {
+test('screens omit repeated footer and header status copy while welcome privacy stays near import', async ({ page }) => {
   await page.goto('/');
-  const footer = page.getByRole('contentinfo');
-  await expect(footer).not.toContainText('The official eLogbook remains authoritative.');
-  await expect(footer).toContainText('Read-only companion · no uploads or saved workbook data');
-  await expect(footer).toContainText('Only your light/dark preference is saved.');
+  const checkCopy = async () => {
+    await expect(page.getByRole('contentinfo')).toHaveCount(0);
+    await expect(page.locator('body')).not.toContainText('Read-only companion');
+    await expect(page.locator('body')).not.toContainText('Only your light/dark preference is saved.');
+    await expect(page.locator('.topbar')).not.toContainText('Local · in memory');
+  };
+  await checkCopy();
+  await expect(page.getByText('No uploads. No saved working data.', { exact: true })).toBeVisible();
+  await page.getByLabel('Choose .xlsx file').setInputFiles(fixture);
+  await expect(page.getByRole('heading', { name: 'Review your import' })).toBeVisible();
+  await checkCopy();
+  await page.getByRole('button', { name: 'Explore procedures' }).click();
+  await checkCopy();
+});
+
+test('charts omit redundant captions while retaining counts, selection scope and drill-down', async ({ page }) => {
+  await openFixture(page);
+  await expect(page.locator('.overview-heading')).toHaveText('Select a chart category to filter.');
+  await expect(page.locator('body')).not.toContainText('Available counts use the other filters');
+  await expect(page.locator('body')).not.toContainText('Recorded labels, by count.');
+  await expect(page.locator('.chart-context:empty')).toHaveCount(0);
+  for (const name of ['Procedure mix', 'Supervision breakdown']) {
+    const chart = page.getByRole('region', { name, exact: true });
+    await expect(chart.locator('.chart-denominator')).toHaveText('9 available');
+    await chart.getByRole('radio', { name: 'Pie', exact: true }).check();
+    await expect(chart.getByRole('group', { name: `${name} pie chart` })).toBeVisible();
+    await expect(chart).not.toContainText('Slices use the available total.');
+  }
+  await page.getByRole('button', { name: 'Performed: 2 procedures · pie slice', exact: true }).click();
+  await expect(page.locator('tbody th')).toHaveText(['5', '6']);
+  await expect(page.getByTestId('chart-total')).toHaveText('9');
+  await expect(page.getByText('Supervision selection excluded.', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Active filters')).toContainText('Supervision: Performed');
+  await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(9);
 });
 
 test('explorer heading keeps sheet and count without repeated guidance', async ({ page }) => {

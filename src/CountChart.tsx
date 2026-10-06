@@ -50,7 +50,7 @@ export default function CountChart({ title, dimension, groups, activeKey, onSele
       <label><input type="radio" name={viewId} value="bars" checked={view === 'bars'} onChange={() => onViewChange('bars')}/>Bars</label>
       <label><input type="radio" name={viewId} value="pie" checked={view === 'pie'} onChange={() => onViewChange('pie')}/>Pie</label>
     </fieldset>}
-    <p className="small muted chart-context">{monthly ? 'Months with entries, in date order.' : isPie ? 'Slices use the available total.' : 'Recorded labels, by count.'}{activeKey !== undefined && activeKey !== '' && <span className="chart-scope">{dimension} selection excluded.</span>}{overflows && <span className="chart-scroll-hint"> Scroll for more.</span>}</p>
+    {(monthly || (activeKey !== undefined && activeKey !== '') || overflows) && <p className="small muted chart-context">{monthly && 'Months with entries, in date order.'}{activeKey !== undefined && activeKey !== '' && <span className="chart-scope">{dimension} selection excluded.</span>}{overflows && <span className="chart-scroll-hint"> Scroll for more.</span>}</p>}
     <div ref={motion.body} className="chart-body">{groups.length > 0 ? <>
     {isPie && <svg className="pie-chart" viewBox="0 0 220 220" role="group" aria-label={`${title} pie chart`}>
       {pieSegments(groups).map((segment, index) => <path key={segment.key} className="pie-slice" d={segment.path} fill={colours.get(segment.key)}

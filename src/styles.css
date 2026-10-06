@@ -15,8 +15,6 @@
 .brand-mark { background: var(--secondary); color: var(--foreground); border-radius: var(--estate-radius); padding: .55rem .65rem; font-family: var(--estate-font-heading); font-size: 1.3rem; font-weight: 600; flex-shrink: 0; }
 .tagline { display: block; margin: .12rem 0 0; font-weight: 400; font-size: .875rem; color: var(--muted-foreground); }
 .header-actions { display: flex; align-items: center; gap: .8rem; }
-.local-status { font-size: .875rem; color: var(--muted-foreground); white-space: nowrap; }
-.local-status i { display: inline-block; height: 6px; width: 6px; border-radius: 50%; background: var(--estate-link); margin-right: 5px; }
 main { min-height: 73vh; padding: 1.5rem 0 3rem; }
 .muted { color: var(--muted-foreground); }
 .small { font-size: .875rem; line-height: 1.5; }
@@ -124,7 +122,6 @@ tbody tr:nth-child(even), tbody tr:hover { background: var(--secondary); }
 .filter-status { padding: 1rem; margin: .5rem 0; background: var(--secondary); border-radius: var(--estate-radius); }
 .loading { padding: 2rem; background: var(--secondary); border-radius: var(--estate-radius); }
 .loading span { display: block; font-size: .875rem; color: var(--muted-foreground); }
-footer { border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: 1rem; padding: 1.3rem 0 1.8rem; color: var(--muted-foreground); font-size: .875rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; padding: 0; border: 0; }
 :root { view-transition-name: none; }
 .chart-view label:hover { background: var(--secondary); }
@@ -155,7 +152,7 @@ footer { border-top: 1px solid var(--border); display: flex; justify-content: sp
 
 }
 @media (max-width: 1100px) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .search-label { grid-column: 1 / -1; } .selection-summary { gap: 1rem; } .analysis-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .activity { grid-column: 1 / -1; } }
-@media (max-width: 900px) { .local-status { display: none; } }
+
 @media (max-width: 650px) {
   .topbar { flex-wrap: wrap; padding: .7rem 0; gap: .5rem; }
   .header-actions { width: 100%; justify-content: flex-start; }
@@ -177,5 +174,5 @@ footer { border-top: 1px solid var(--border); display: flex; justify-content: sp
   .source-link { grid-column: 1 / -1; margin-left: 0; }
   .analysis-grid { grid-template-columns: minmax(0, 1fr); gap: .8rem; }
   .count-chart { padding: .85rem; }
-  footer { flex-direction: column; gap: .5rem; }
+
 }
