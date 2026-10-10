@@ -26,7 +26,7 @@ npm run build
 npm run preview
 ```
 
-Open **http://127.0.0.1:4173/app/**. The preview binds to loopback; do not expose it publicly. For editing, use `npm run dev` and reload manually because the CSP blocks hot reload. Run `npm run check` for tests, type checking, build and Chromium checks; install Chromium first with `npx playwright install chromium`.
+Open **http://127.0.0.1:4173/app/**. The preview binds to loopback; do not expose it publicly. For editing, use `npm run dev` and reload manually because the CSP blocks hot reload. Run `npm run check` for tests, type checking, build and Chromium checks; install Chromium first with `npx playwright install chromium`. If port 4173 is in use, run the checks with `CASEBOOK_TEST_PORT=43173 npm run check` instead.
 
 ## Project notes
 

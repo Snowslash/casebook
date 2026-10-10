@@ -33,7 +33,7 @@ test('overview presents all monthly and procedure counts with missing dates visi
   }
 });
 
-test('hospital, month and supervision selections compose without uploads or persistence', async ({ page }) => {
+test('hospital, month and supervision selections compose without uploads or persistence', async ({ page, baseURL }) => {
   const requests: { url: string; method: string; body: string | null; type: string }[] = [];
   page.on('request', request => requests.push({ url: request.url(), method: request.method(), body: request.postData(), type: request.resourceType() }));
   await explore(page);
@@ -55,7 +55,7 @@ test('hospital, month and supervision selections compose without uploads or pers
   await expect(page.getByLabel('Active filters')).toContainText('No active filters');
   await page.getByRole('button', { name: 'Clear file', exact: true }).click();
   await expect(page.locator('table')).toHaveCount(0);
-  expect(requests.every(r => new URL(r.url).origin === 'http://127.0.0.1:4173' && r.method === 'GET' && r.body === null)).toBe(true);
+  expect(requests.every(r => new URL(r.url).origin === new URL(baseURL!).origin && r.method === 'GET' && r.body === null)).toBe(true);
   expect(requests.filter(r => ['fetch', 'xhr'].includes(r.type))).toEqual([]);
   expect(await page.evaluate(async () => ({ local: localStorage.length, session: sessionStorage.length, databases: (await indexedDB.databases()).length, workers: (await navigator.serviceWorker.getRegistrations()).length }))).toEqual({ local: 0, session: 0, databases: 0, workers: 0 });
 });

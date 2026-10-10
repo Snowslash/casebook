@@ -1,5 +1,5 @@
 {
-  "name": "operation-logbook-explorer",
+  "name": "casebook",
   "version": "0.1.0",
   "description": "Casebook: a browser-memory-only, read-only explorer for operative eLogbook XLSX exports.",
   "private": true,

@@ -150,7 +150,7 @@ test('supervision chart keeps original labels without the participation eyebrow'
   await expect(chart.getByTestId('chart-total')).toHaveText('9');
 });
 
-test('real XLSX import → filter → aggregate → source rows → reset, without upload or persistence', async ({ page }) => {
+test('real XLSX import → filter → aggregate → source rows → reset, without upload or persistence', async ({ page, baseURL }) => {
   const requests: { url: string; method: string; body: string | null; kind: string }[] = [];
   const errors: string[] = [];
   page.on('request', r => requests.push({ url: r.url(), method: r.method(), body: r.postData(), kind: r.resourceType() }));
@@ -184,7 +184,7 @@ test('real XLSX import → filter → aggregate → source rows → reset, witho
   await expect(page.locator('tbody tr')).toHaveCount(0);
   const storage = await page.evaluate(async () => ({ local: localStorage.length, session: sessionStorage.length, databases: (await indexedDB.databases()).length }));
   expect(storage).toEqual({ local: 0, session: 0, databases: 0 });
-  expect(requests.every(r => new URL(r.url).origin === 'http://127.0.0.1:4173' && r.method === 'GET' && r.body === null)).toBe(true);
+  expect(requests.every(r => new URL(r.url).origin === new URL(baseURL!).origin && r.method === 'GET' && r.body === null)).toBe(true);
   expect(requests.filter(r => ['fetch', 'xhr'].includes(r.kind))).toEqual([]);
   expect(errors).toEqual([]);
   await page.reload();

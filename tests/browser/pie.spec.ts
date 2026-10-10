@@ -124,7 +124,7 @@ test('pie legends keep exact missing/literal and unfamiliar labels; empty and si
   await expect(role.locator('.chart-denominator')).toHaveText('0 available');
 });
 
-test('pie mode keeps long-tail categories reachable, stable colours and local-only state on phone', async ({ page }) => {
+test('pie mode keeps long-tail categories reachable, stable colours and local-only state on phone', async ({ page, baseURL }) => {
   const requests: { url: string; method: string; kind: string; body: string | null }[] = [];
   const errors: string[] = [];
   page.on('request', r => requests.push({ url: r.url(), method: r.method(), kind: r.resourceType(), body: r.postData() }));
@@ -146,6 +146,6 @@ test('pie mode keeps long-tail categories reachable, stable colours and local-on
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect((await last.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(async () => ({ local: localStorage.length, session: sessionStorage.length, db: (await indexedDB.databases()).length }))).toEqual({ local: 0, session: 0, db: 0 });
-  expect(requests.every(r => new URL(r.url).origin === 'http://127.0.0.1:4173' && r.method === 'GET' && r.body === null && !['fetch', 'xhr'].includes(r.kind))).toBe(true);
+  expect(requests.every(r => new URL(r.url).origin === new URL(baseURL!).origin && r.method === 'GET' && r.body === null && !['fetch', 'xhr'].includes(r.kind))).toBe(true);
   expect(errors).toEqual([]);
 });

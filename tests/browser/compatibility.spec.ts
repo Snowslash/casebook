@@ -112,7 +112,7 @@ test('colliding CEPOD text and number labels remain distinguishable and select d
 });
 
 for (const theme of ['light', 'dark'] as const) {
-  test(`CEPOD preserves typed categories and exact drill-down, reset and privacy in ${theme} mode`, async ({ page }) => {
+  test(`CEPOD preserves typed categories and exact drill-down, reset and privacy in ${theme} mode`, async ({ page, baseURL }) => {
     const errors: string[] = [];
     const traffic: { method: string; type: string; url: string }[] = [];
     page.on('pageerror', e => errors.push(e.message));
@@ -167,7 +167,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.reload();
     await expect(page.locator('.welcome-copy')).toBeVisible();
     expect(await page.evaluate(async () => ({ local: Object.fromEntries(Object.entries(localStorage)), session: sessionStorage.length, db: (await indexedDB.databases()).length, workers: (await navigator.serviceWorker.getRegistrations()).length }))).toEqual({ local: theme === 'light' ? { sangeevSiteTheme: 'light' } : {}, session: 0, db: 0, workers: 0 });
-    expect(traffic.every(r => r.method === 'GET' && new URL(r.url).origin === 'http://127.0.0.1:4173' && !['fetch', 'xhr'].includes(r.type))).toBe(true);
+    expect(traffic.every(r => r.method === 'GET' && new URL(r.url).origin === new URL(baseURL!).origin && !['fetch', 'xhr'].includes(r.type))).toBe(true);
     expect(errors).toEqual([]);
   });
 }
