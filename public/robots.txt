@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://casebook.sangeev.me/sitemap.xml

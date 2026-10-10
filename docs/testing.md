@@ -10,7 +10,7 @@ npm run check
 npm run fixture
 ```
 
-`npm run check` runs Vitest, TypeScript checking, the production build and Playwright against that build. The browser test server uses loopback port 4173 and exits after testing; stop any manually running preview on that port first. Tests use only synthetic files. Playwright traces are disabled; synthetic screenshots go to ignored `test-results/`. Dependencies are locked in `package-lock.json`.
+`npm run check` runs Vitest, TypeScript checking, the production build, Python 3 standard-library crawler/artifact checks and Playwright against that build. `npm run test:crawl` can also check the built files independently. Set `CASEBOOK_HTTP_ORIGIN` to a running loopback Wrangler Pages emulator to additionally exercise real HTTP routing; without it those three HTTP tests are explicitly skipped, not treated as routing evidence. The browser test server uses loopback port 4173 and exits after testing; stop any manually running preview on that port first. Tests use only synthetic files. Playwright traces are disabled; synthetic screenshots go to ignored `test-results/`. Dependencies are locked in `package-lock.json`.
 
 For editing, use `npm run dev`. The strict CSP blocks development hot reload; manually reload or use the production build/preview workflow. Fixture regeneration requires Python 3 available as `python`. All tests and screenshots must use wholly synthetic files.
 

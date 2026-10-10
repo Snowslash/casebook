@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "fixture": "python scripts/create_fixture.py",
-    "check": "npm test && npm run build && npm run test:e2e"
+    "test:crawl": "python3 scripts/check_crawl.py",
+    "check": "npm test && npm run build && npm run test:crawl && npm run test:e2e"
   },
   "dependencies": {
     "@sangeev/estate-ui": "file:vendor/sangeev-estate-ui-2.0.0-alpha.7.tgz",
