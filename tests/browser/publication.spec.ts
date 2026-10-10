@@ -30,6 +30,11 @@ async function applyPagesHeaders(page: Page) {
   return pagesHeadersFor('/app/');
 }
 
+test.afterEach(async ({ page }) => {
+  // Finish in-flight fetch/fulfill handlers before Playwright disposes their responses.
+  await page.unrouteAll({ behavior: 'wait' });
+});
+
 test('no-transform is restricted to the two HTML entrypoints without weakening the security policy', () => {
   expect(pagesHeaderRules().map(rule => rule.path)).toEqual(['/*', '/', '/app/']);
   const csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
