@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 function pagesHeaderRules() {
   return readFileSync('dist/_headers', 'utf8').trim().split(/\n\s*\n/).map(block => {
-    const [path, ...lines] = block.split('\n');
+    const [path, ...lines] = block.split(/\r?\n/);
     const headers = Object.fromEntries(lines.map(line => {
       const colon = line.indexOf(':');
       expect(colon).toBeGreaterThan(0);
@@ -56,7 +56,7 @@ for (const path of ['/', '/app/']) {
     const response = await page.goto(path);
     expect(response!.headers()['cache-control']).toBe('public, max-age=0, must-revalidate, no-transform');
     expect(response!.headers()['x-frame-options']).toBe('DENY');
-    await expect(page.getByRole('heading', { name: path === '/' ? 'Casebook' : 'Explore your eLogbook export', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: path === '/' ? 'Casebook.' : 'Explore your eLogbook export', exact: true })).toBeVisible();
   });
 }
 

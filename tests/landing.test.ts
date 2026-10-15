@@ -11,7 +11,7 @@ describe('landing and explorer route contract', () => {
     const lock = JSON.parse(text('package-lock.json'));
     expect(lock.packages[''].dependencies['@sangeev/estate-ui']).toBe(pin);
     expect(lock.packages['node_modules/@sangeev/estate-ui'].version).toBe('2.0.0-alpha.7');
-    for (const path of ['src/App.tsx', 'src/landing/LandingPage.tsx']) {
+    for (const path of ['src/App.tsx', 'src/landing/ProjectPage.tsx']) {
       expect(text(path)).toMatch(/<PublicEstateHeader[^>]*navigation="projects"/);
     }
   });
@@ -29,12 +29,16 @@ describe('landing and explorer route contract', () => {
 
   it('composes the landing from the pinned package without importing explorer state', () => {
     expect(existsSync('src/landing/LandingPage.tsx')).toBe(true);
-    const source = text('src/landing/LandingPage.tsx');
-    expect(source).toMatch(/<PublicEstateHeader[^>]*current="casebook"[\s\S]*<EstateShell variant="landing"/);
-    for (const component of ['EstateBoundary', 'EstateEvidenceFrame', 'EstatePageTitle', 'EstateSectionTitle', 'GitHubMark']) expect(source).toContain(component);
-    expect(source).toContain('href="./app/"');
-    expect(source).toContain('https://github.com/Snowslash/casebook');
-    expect(source).toContain('https://sangeev.me/#projects');
+    expect(text('src/landing/LandingPage.tsx')).toContain('<ProjectPage project={project} />');
+    const page = text('src/landing/ProjectPage.tsx');
+    const project = text('src/landing/project.ts');
+    const source = page + project;
+    expect(page).toMatch(/<PublicEstateHeader[^>]*current=\{project\.key as EstatePage\}[\s\S]*<EstateShell variant="landing"/);
+    for (const component of ['EstatePageTitle', 'EstateSectionTitle']) expect(page).toContain(component);
+    expect(project).toContain("key: 'casebook'");
+    expect(project).toContain("href: './app/'");
+    expect(project).toContain('https://github.com/Snowslash/casebook');
+    expect(page).toContain('https://sangeev.me/#${project.key}');
     expect(source).not.toMatch(/import .*App|importWorkbook|localStorage|fetch\(/);
     expect(text('src/landing/main.tsx')).toContain('initialiseEstateTheme()');
     expect(text('src/landing/styles.css')).toContain('@sangeev/estate-ui/contract.css');

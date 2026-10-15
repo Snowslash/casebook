@@ -36,27 +36,31 @@ for (const width of [1440, 390, 320]) {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Casebook', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Casebook.', exact: true })).toBeVisible();
     await expect(page.locator('[data-estate-layout="landing"]')).toHaveCount(1);
     await expect(page.locator('html')).toHaveAttribute('data-estate-ui', '2.0.0-alpha.7');
     await expect(page.locator('h1')).toHaveCount(1);
     const open = page.getByRole('link', { name: 'Open Casebook', exact: true });
-    const source = page.getByRole('link', { name: 'Source on GitHub' });
+    const source = page.getByRole('link', { name: 'Source code and notes on GitHub' }).first();
     await expect(open).toHaveAttribute('href', './app/');
-    await expect(source).toHaveAttribute('href', 'https://github.com/Snowslash/casebook');
-    await expect(page.getByRole('link', { name: 'Projects', exact: true }).first()).toHaveAttribute('href', 'https://sangeev.me/#projects');
-    await expect(page.getByLabel('Workbook privacy')).toContainText('browser memory');
-    await expect(page.locator('.eyebrow, .local-status, footer')).toHaveCount(0);
-    const image = page.getByRole('img', { name: /synthetic example/i });
+    await expect(source).toHaveAttribute('href', 'https://github.com/Snowslash/casebook#readme');
+    await expect(page.getByRole('link', { name: 'All projects', exact: true })).toHaveAttribute('href', 'https://sangeev.me/#casebook');
+    await expect(page.getByRole('complementary', { name: 'Before you use it' })).toContainText('never uploaded or saved');
+    await expect(page.locator('.eyebrow, .local-status')).toHaveCount(0);
+    const image = page.getByRole('img', { name: /made-up logbook of nine procedures/i });
     await expect(image).toBeVisible();
     await expect.poll(() => image.evaluate(node => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     for (const theme of ['dark', 'light']) {
       if (theme === 'light') await page.getByRole('button', { name: 'Switch to light mode' }).click();
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForFunction(() => document.getAnimations().every(animation => animation.playState !== 'running'));
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const heights = await Promise.all([open, source].map(link => link.evaluate(node => node.getBoundingClientRect().height)));
-      expect(heights[0]).toBe(48);
-      expect(heights[1]).toBe(48);
+      // The selected card is tilted: its axis-aligned visual bounds exceed its box height.
+      expect(await open.evaluate(node => (node as HTMLElement).offsetHeight)).toBe(48);
+      expect(heights[0]).toBeGreaterThanOrEqual(44);
+      expect(heights[1]).toBeGreaterThanOrEqual(44);
     }
     await open.click();
     await expect(page).toHaveURL(/\/app\/$/);

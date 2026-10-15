@@ -25,7 +25,7 @@ describe('public release artifacts', () => {
   });
 
   it('adds response-only protections without weakening the existing browser CSP', () => {
-    const [securityBlock, ...cacheBlocks] = text('public/_headers').trim().split(/\n\s*\n/);
+    const [securityBlock, ...cacheBlocks] = text('public/_headers').replace(/\r\n/g, '\n').trim().split(/\n\s*\n/);
     expect(cacheBlocks).toEqual(['/', '/app/'].map(path => `${path}\n  Cache-Control: public, max-age=0, must-revalidate, no-transform`));
     const lines = securityBlock.split('\n');
     expect(lines.shift()).toBe('/*');

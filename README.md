@@ -28,6 +28,12 @@ npm run preview
 
 Open **http://127.0.0.1:4173/app/**. The preview binds to loopback; do not expose it publicly. For editing, use `npm run dev` and reload manually because the CSP blocks hot reload. Run `npm run check` for tests, type checking, build and Chromium checks; install Chromium first with `npx playwright install chromium`. If port 4173 is in use, run the checks with `CASEBOOK_TEST_PORT=43173 npm run check` instead.
 
+## Landing-page maintenance
+
+The project introduction lives in `src/landing/project.ts`; `ProjectPage.tsx` and `project-page.css` are generated copies of the shared estate project-page template. Keep the initial `index.html` introduction, privacy boundaries and real links available without JavaScript. The explorer remains at `/app/`.
+
+Local release verification: locked `npm ci` and full `npm audit --json` passed with no reported vulnerabilities. `npm test -- --maxWorkers=1`, `node --test tests/landing-motion.contract.mjs`, the production build and crawl checks passed (the three HTTP-only crawl checks require `CASEBOOK_HTTP_ORIGIN` and were skipped). All 77 Chromium tests passed with a lightweight built-artifact server, one worker and two-CPU affinity. These are local results, not live-host or clinical validation.
+
 ## Project notes
 
 - [Synthetic acceptance fixture, test coverage and verification](docs/testing.md)

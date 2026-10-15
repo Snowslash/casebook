@@ -1,0 +1,528 @@
+/* The shared project page. Copy unchanged into each project; it matches the homepage desk. */
+
+/* ── Desk and paper, the same tokens as the homepage desk ── */
+:root {
+  --desk-ground: var(--estate-atlas);
+  --desk-text: var(--estate-foam);
+  --desk-muted: var(--estate-mist);
+  --desk-shadow: 0 14px 26px -14px rgb(2 20 19 / 0.7);
+  --desk-shadow-hover: 0 20px 34px -16px rgb(2 20 19 / 0.75);
+  --desk-shadow-lift: 0 42px 60px -26px rgb(2 20 19 / 0.85);
+  /* Handled paper: a fine grain, edges darkened by use, and a faint smudge. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.04 0 0 0 0 0.17 0 0 0 0 0.16 0 0 0 0.11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --paper-edge-wear: inset 0 0 22px -4px rgb(2 20 19 / 0.2);
+  --paper-smudge: rgb(2 20 19 / 0.055);
+  --paper: var(--estate-foam);
+  --paper-edge: var(--estate-deep);
+  --paper-text: var(--estate-ink);
+  --paper-muted: var(--estate-channel);
+  --paper-rule: var(--estate-shoal);
+  --slip-paper: var(--estate-mist);
+}
+
+[data-theme="dark"],
+.dark {
+  --desk-ground: var(--estate-night);
+  --desk-text: var(--estate-night-text);
+  --desk-muted: var(--estate-night-muted);
+  --desk-shadow: 0 16px 30px -12px rgb(0 0 0 / 0.85);
+  --desk-shadow-hover: 0 24px 40px -14px rgb(0 0 0 / 0.88);
+  --desk-shadow-lift: 0 46px 64px -24px rgb(0 0 0 / 0.95);
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.83 0 0 0 0 0.89 0 0 0 0 0.87 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --paper-edge-wear: inset 0 0 24px -4px rgb(0 0 0 / 0.38);
+  --paper-smudge: rgb(0 0 0 / 0.12);
+  --paper: #1d4b47;
+  --paper-edge: var(--estate-night-link);
+  --paper-text: var(--estate-night-text);
+  --paper-muted: var(--estate-night-muted);
+  --paper-rule: var(--estate-rule);
+  --slip-paper: #163e3b;
+}
+
+/* :root outranks the base stylesheet, which loads after this file. */
+html:root, html:root body { background: var(--desk-ground); }
+
+.project-desk {
+  min-height: calc(100svh - var(--estate-header-height));
+  background: var(--desk-ground);
+  color: var(--desk-text);
+}
+
+.project-desk main { padding-block: 28px 40px; }
+.project-desk main:focus { outline: none; }
+
+/* Skip link: off screen until focused. */
+.skip-link {
+  position: fixed;
+  inset-block-start: 12px;
+  inset-inline-start: 12px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--paper-text);
+  transform: translateY(calc(-100% - 16px));
+}
+.skip-link:focus { transform: none; }
+
+/* A project's own sub-navigation, where it has one, sits on the desk too. */
+.project-desk .project-nav { border-bottom-color: color-mix(in oklab, var(--desk-muted) 45%, transparent); }
+.project-desk .project-nav a { color: var(--desk-muted); }
+.project-desk .project-nav a:hover,
+.project-desk .project-nav a[aria-current="page"],
+.project-desk .project-nav .project-name { color: var(--desk-text); }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--desk-muted);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.back-link:hover { text-decoration-line: underline; }
+
+/* Paper, shared by the opened card, the slip, the prints and the index cards. */
+.opened-face,
+.slip,
+.print figure,
+.index-face {
+  border: 2px solid var(--paper-edge);
+  border-radius: var(--estate-radius);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse 46% 38% at var(--smudge-x, 82%) var(--smudge-y, 78%), var(--paper-smudge), transparent 70%),
+    var(--paper-grain);
+  color: var(--paper-text);
+}
+
+/* ── The opened card ── */
+@property --fold {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 26px;
+}
+
+.opened {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  align-items: start;
+  margin-block: 26px 96px;
+}
+
+/* The shadow sits on the wrapper so the clipped corner doesn't cut it off. */
+.opened-card {
+  --fold: 44px;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 22px 20px rgb(2 20 19 / 0.38));
+  transform: rotate(-0.5deg);
+}
+
+.opened-face {
+  position: relative;
+  padding: clamp(28px, 4vw, 48px);
+  padding-inline-end: calc(var(--fold) + 24px);
+  box-shadow: var(--paper-edge-wear);
+  clip-path: polygon(0 0, calc(100% - var(--fold)) 0, 100% var(--fold), 100% 100%, 0 100%);
+}
+
+/* Dog-eared corner, as on the homepage cards. */
+.opened-face::after {
+  position: absolute;
+  inset-block-start: -2px;
+  inset-inline-end: -2px;
+  width: var(--fold);
+  height: var(--fold);
+  border-inline-start: 2px solid var(--paper-edge);
+  border-block-end: 2px solid var(--paper-edge);
+  background: linear-gradient(225deg, color-mix(in oklab, var(--paper), var(--estate-ink) 20%), color-mix(in oklab, var(--paper), var(--estate-ink) 6%) 70%);
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+  content: "";
+}
+
+.opened-card .estate-page-title {
+  margin: 0;
+  color: var(--paper-text);
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 750;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+/* The full stop echoes the coral in the Sangeev.me wordmark and the homepage headline. */
+.title-stop { color: var(--estate-coral); }
+
+.opened-tagline {
+  margin: 18px 0 0;
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--paper-rule);
+  color: var(--paper-muted);
+  font-family: var(--estate-font-heading);
+  font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.opened-description {
+  max-width: 52ch;
+  margin: 22px 0 0;
+  font-size: clamp(1.08rem, 1.6vw, 1.22rem);
+  line-height: 1.55;
+}
+
+.opened-why {
+  max-width: 58ch;
+  margin: 14px 0 0;
+  color: var(--paper-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.opened-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+  margin-block-start: 30px;
+}
+
+.opened-note { flex-basis: 100%; margin: 0; color: var(--paper-muted); font-size: 0.95rem; }
+
+.opened-secondary,
+.opened-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--paper-text);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.opened-secondary:hover,
+.opened-source:hover { text-decoration-line: underline; }
+
+/* ── The slip, tucked under the card's edge ── */
+.slip {
+  position: relative;
+  margin-block-start: 64px;
+  margin-inline-start: -36px;
+  padding: 26px 26px 26px 58px;
+  background-color: var(--slip-paper);
+  box-shadow: var(--desk-shadow), var(--paper-edge-wear);
+  transform: rotate(1.4deg);
+  --smudge-x: 20%;
+  --smudge-y: 30%;
+}
+
+.slip h2 {
+  margin: 0 0 14px;
+  color: var(--paper-text);
+  font-family: var(--estate-font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.slip p { margin: 0; font-size: 0.95rem; line-height: 1.55; }
+.slip p + p { margin-block-start: 10px; }
+
+/* ── Arrival: the card is set down on the desk, then the slip slides out from under it ── */
+.opened-card { animation: card-land 560ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.slip { animation: slip-out 420ms cubic-bezier(0.16, 1, 0.3, 1) 260ms both; }
+
+@keyframes card-land {
+  from {
+    filter: drop-shadow(0 44px 34px rgb(2 20 19 / 0.5));
+    transform: translateY(-14px) scale(1.025) rotate(-1.6deg);
+  }
+}
+
+/* No fade: if the animation never runs, the slip must still be readable. */
+@keyframes slip-out {
+  from {
+    transform: translateX(-72px) rotate(0deg);
+  }
+}
+
+@keyframes slip-out-down {
+  from {
+    transform: translateY(-48px) rotate(0deg);
+  }
+}
+
+/* ── Sections set on the desk ── */
+.desk-section { margin-block-end: 96px; }
+
+.desk-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 32px;
+  margin-block-end: 36px;
+  padding-block-end: 10px;
+  border-block-end: 2px solid color-mix(in oklab, var(--desk-muted) 45%, transparent);
+}
+
+.desk-section .estate-section-title {
+  margin: 0;
+  color: var(--desk-text);
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  font-weight: 700;
+}
+
+.desk-heading p { max-width: 46ch; margin: 0; color: var(--desk-muted); font-size: 0.95rem; }
+
+/* ── Prints: screenshots laid on the desk ── */
+.prints {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 48px clamp(32px, 6vw, 88px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.print { --lean: -1.8deg; width: min(340px, 100%); }
+.print:nth-child(even) { --lean: 1.6deg; margin-block-start: 56px; }
+.print--wide { width: min(820px, 100%); }
+.print--wide:nth-child(even) { margin-block-start: 0; }
+.prints:has(.print--wide) .print--wide:only-child { --lean: -0.8deg; }
+
+.print figure {
+  margin: 0;
+  padding: 14px 14px 18px;
+  box-shadow: var(--desk-shadow), var(--paper-edge-wear);
+  transform: rotate(var(--lean, 0deg));
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease-out;
+}
+
+.print:hover figure,
+.print:focus-within figure {
+  box-shadow: var(--desk-shadow-hover), var(--paper-edge-wear);
+  transform: rotate(0deg) translateY(-6px);
+}
+
+.print-image {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--paper-edge);
+  background: var(--estate-deep);
+  cursor: zoom-in;
+}
+
+.print-image:focus-visible { outline-offset: 4px; }
+.print-image img { display: block; width: 100%; height: auto; }
+
+.print figcaption {
+  margin-block-start: 12px;
+  color: var(--paper-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* ── The held print ── */
+.held-print {
+  --lift-x: 0px;
+  --lift-y: 0px;
+  --lift-s: 0.5;
+  width: auto;
+  max-width: min(560px, calc(100vw - 32px));
+  max-height: calc(100svh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.held-print[data-wide] { max-width: min(1180px, calc(100vw - 32px)); }
+
+.held-print::backdrop { background: rgb(2 20 19 / 0.6); }
+
+.held-print figure {
+  display: flex;
+  max-height: calc(100svh - 32px);
+  margin: 0;
+  padding: 16px 16px 14px;
+  flex-direction: column;
+  border: 2px solid var(--paper-edge);
+  border-radius: var(--estate-radius);
+  background-color: var(--paper);
+  background-image: var(--paper-grain);
+  box-shadow: 0 60px 90px -30px rgb(2 20 19 / 0.9), var(--paper-edge-wear);
+  color: var(--paper-text);
+  transform: rotate(-0.4deg);
+}
+
+.held-print img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: calc(100svh - 140px);
+  margin-inline: auto;
+  border: 1px solid var(--paper-edge);
+  object-fit: contain;
+}
+
+.held-print figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-block-start: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.put-down {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--paper-text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.put-down:hover { text-decoration: underline; }
+
+.held-print[data-lifting] figure { animation: print-lift 480ms cubic-bezier(0.16, 1, 0.3, 1); }
+.held-print[data-lifting]::backdrop { animation: print-fade 300ms ease-out; }
+.held-print[data-dropping] figure { animation: print-lift 260ms cubic-bezier(0.7, 0, 0.84, 0) reverse forwards; }
+.held-print[data-dropping]::backdrop { animation: print-fade 260ms ease-in reverse forwards; }
+
+@keyframes print-lift {
+  from {
+    transform: translate(var(--lift-x), var(--lift-y)) scale(var(--lift-s)) rotate(-1.8deg);
+    box-shadow: var(--desk-shadow);
+  }
+}
+
+@keyframes print-fade { from { opacity: 0; } }
+
+/* ── Index cards ── */
+.index-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.index-card {
+  --fold: 22px;
+  --lean: -1.2deg;
+  filter: drop-shadow(0 12px 12px rgb(2 20 19 / 0.32));
+  transform: rotate(var(--lean, 0deg));
+}
+
+.index-card:nth-child(4n + 2) { --lean: 0.8deg; }
+.index-card:nth-child(4n + 3) { --lean: -0.5deg; }
+.index-card:nth-child(4n + 4) { --lean: 1.1deg; }
+
+.index-face {
+  position: relative;
+  height: 100%;
+  min-height: 170px;
+  padding: 20px 22px 22px;
+  box-shadow: var(--paper-edge-wear);
+  clip-path: polygon(0 0, calc(100% - var(--fold)) 0, 100% var(--fold), 100% 100%, 0 100%);
+  --smudge-x: 30%;
+  --smudge-y: 85%;
+}
+
+.index-face::after {
+  position: absolute;
+  inset-block-start: -2px;
+  inset-inline-end: -2px;
+  width: var(--fold);
+  height: var(--fold);
+  border-inline-start: 2px solid var(--paper-edge);
+  border-block-end: 2px solid var(--paper-edge);
+  background: linear-gradient(225deg, color-mix(in oklab, var(--paper), var(--estate-ink) 20%), color-mix(in oklab, var(--paper), var(--estate-ink) 6%) 70%);
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+  content: "";
+}
+
+.index-card h3 {
+  margin: 0 0 10px;
+  padding-inline-end: var(--fold);
+  color: var(--paper-text);
+  font-family: var(--estate-font-heading);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.index-card p { margin: 0; color: var(--paper-muted); font-size: 0.95rem; line-height: 1.5; }
+
+/* ── Limits: plain text, no costume ── */
+.limits .estate-section-title { margin-block-end: 14px; }
+.limits p { max-width: 66ch; margin: 0; color: var(--desk-text); font-size: 1.08rem; line-height: 1.6; }
+
+.desk-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 22px 0 42px;
+  border-block-start: 2px solid color-mix(in oklab, var(--desk-muted) 45%, transparent);
+  color: var(--desk-muted);
+  font-size: 14px;
+}
+
+.desk-footer p { margin: 0; }
+.desk-footer nav { display: flex; flex-wrap: wrap; gap: 0 22px; }
+.desk-footer a { display: inline-flex; align-items: center; color: var(--desk-text); text-decoration: none; }
+.desk-footer a:hover { text-decoration-line: underline; }
+
+/* ── Phones: paper stays, the leaning stops ── */
+@media (max-width: 760px) {
+  .opened { grid-template-columns: 1fr; margin-block: 18px 64px; }
+  .opened-card { --fold: 30px; transform: none; }
+  .opened-face { padding: 24px calc(var(--fold) + 12px) 26px 22px; }
+  .slip { margin: -10px 10px 0; padding: 30px 22px 22px; transform: rotate(0.8deg); animation-name: slip-out-down; }
+  .desk-section { margin-block-end: 64px; }
+  .prints { gap: 32px; }
+  .print:nth-child(even) { margin-block-start: 0; }
+  .print figure, .index-card { transform: none; }
+  .index-cards { gap: 18px; }
+  .index-face { min-height: 0; }
+  .desk-footer { flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opened-card, .slip { animation: none; }
+  .print figure { transition: none; }
+  .print:hover figure,
+  .print:focus-within figure { transform: rotate(var(--lean, 0deg)); }
+  .held-print[data-lifting] figure,
+  .held-print[data-dropping] figure,
+  .held-print[data-lifting]::backdrop,
+  .held-print[data-dropping]::backdrop { animation: none; }
+}
+
+@media (forced-colors: active) {
+  .opened-card, .index-card { filter: none; }
+  .opened-face, .index-face { clip-path: none; }
+  .opened-face::after, .index-face::after { display: none; }
+}

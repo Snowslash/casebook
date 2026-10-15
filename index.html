@@ -5,20 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#061e1d" />
   <meta name="referrer" content="no-referrer" />
-  <meta name="description" content="Casebook is a read-only operative eLogbook explorer. Review XLSX exports, filter logged procedures and inspect source rows in browser memory." />
+  <meta name="description" content="Turns your surgical logbook export into charts you can filter, and shows the exact entries behind every number." />
   <link rel="canonical" href="https://casebook.sangeev.me/" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" />
-  <title>Casebook</title>
+  <title>Casebook — Sangeev</title>
 </head>
 <body>
-  <div id="root"><main class="casebook-fallback">
-    <a href="https://sangeev.me/#projects">Projects</a>
-    <h1>Casebook</h1>
-    <p>Explore your operative logbook. Review an eLogbook .xlsx export, filter logged procedures and inspect the source rows behind each chart.</p>
-    <p>Workbook processing stays in browser memory. Casebook does not upload or save your workbook.</p>
-    <p><a href="./app/">Open Casebook</a> · <a href="https://github.com/Snowslash/casebook">Source on GitHub</a></p>
-    <noscript><p>The explorer needs JavaScript to process a workbook locally.</p></noscript>
-  </main></div>
+  <div id="root">
+    <div class="project-desk">
+      <main id="main-content" class="estate-shell estate-shell--landing" data-estate-layout="landing">
+        <a class="back-link" href="https://sangeev.me/#casebook">All projects</a>
+        <section class="opened">
+          <div class="opened-card"><div class="opened-face">
+            <h1 class="estate-page-title estate-page-title--landing">Casebook</h1>
+            <p class="opened-description">Turns your surgical logbook export into charts you can filter, and shows the exact entries behind every number.</p>
+            <div class="opened-actions">
+              <a class="estate-primary-action" href="./app/">Open Casebook</a>
+              <a class="opened-source" href="https://github.com/Snowslash/casebook#readme">Source code and notes on GitHub</a>
+            </div>
+          </div></div>
+          <aside class="slip">
+            <h2>Before you use it</h2>
+            <p>Try the made-up example first, and keep real logbook exports out of screenshots and bug reports.</p>
+            <p>Your file is read in your browser and never uploaded or saved. Reload the page and it’s gone.</p>
+            <p>It works with the standard spreadsheet you download from eLogbook, up to about 5 MB. Anything else is turned away rather than guessed at.</p>
+          </aside>
+        </section>
+        <section class="desk-section limits">
+          <h2 class="estate-section-title">What it won’t do</h2>
+          <p>One row is one logged procedure, not one patient, one theatre case or a measure of competence. It’s for exploring your logbook, not a validated clinical or portfolio assessment.</p>
+        </section>
+        <noscript><p>The explorer needs JavaScript to process a workbook locally.</p></noscript>
+      </main>
+    </div>
+  </div>
   <script type="module" src="/src/landing/main.tsx"></script>
 </body>
 </html>
