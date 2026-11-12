@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { EstatePageTitle, EstateSectionTitle, EstateShell, PublicEstateHeader, useEstateTheme } from '@sangeev/estate-ui';
-import { aggregateRoles, aggregateMonths, aggregateProcedures, aggregateHospitals, aggregateCepod, formatCepod, filterRows, HEADINGS, USED_HEADINGS, type CepodValue, type Filters, type ImportedLogbook } from './logbook';
-import { MAX_FILE_BYTES } from './workbookGuard';
-import { parseUKDate } from './dates';
+import { aggregateRoles, aggregateMonths, aggregateProcedures, aggregateHospitals, aggregateCepod, formatCepod, HEADINGS, USED_HEADINGS, type CepodValue, type Filters } from './logbook';
+import { useWorkbookImport } from './useWorkbookImport';
+import { buildExplorerView } from './explorerView';
 import CountChart, { type ChartView } from './CountChart';
 
 const ukDate = (iso: string) => iso.split('-').reverse().join('/');
@@ -11,17 +11,16 @@ const optionValue = (value: CepodValue | undefined) => value === undefined ? '' 
 
 export default function App() {
   const { theme, toggleTheme } = useEstateTheme();
-  const [book, setBook] = useState<ImportedLogbook | null>(null);
+  const { state: importState, openFile: importFile, clear: clearImport } = useWorkbookImport();
+  const book = importState.status === 'ready' ? importState.book : null;
+  const loading = importState.status === 'loading';
+  const error = importState.status === 'error' ? importState.error : '';
   const [exploring, setExploring] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [filters, setFilters] = useState<Filters>({});
   const [chartViews, setChartViews] = useState<{ procedure: ChartView; role: ChartView }>({ procedure: 'bars', role: 'bars' });
   const input = useRef<HTMLInputElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const filterArea = useRef<HTMLDivElement>(null);
-  const job = useRef<{ worker: Worker; timer: ReturnType<typeof setTimeout> } | null>(null);
-  const generation = useRef(0);
 
   useEffect(() => {
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
@@ -41,42 +40,18 @@ export default function App() {
     changeFilter(key, undefined);
   }
 
-  function clear() {
-    generation.current++;
-    if (job.current) { job.current.worker.terminate(); clearTimeout(job.current.timer); job.current = null; }
-    setBook(null); setExploring(false); setLoading(false); setError(''); setFilters({});
+  function resetPresentation() {
+    setExploring(false); setFilters({});
     setChartViews({ procedure: 'bars', role: 'bars' });
     if (input.current) input.current.value = '';
   }
-  async function openFile(file: File) {
-    clear();
-    const token = generation.current;
-    if (file.name.toLowerCase().endsWith('.zip')) { setError('Extract the ZIP, open the workbook in Excel, remove its opening password and save an unencrypted .xlsx copy to import. Keep the unencrypted copy secure.'); return; }
-    if (!file.name.toLowerCase().endsWith('.xlsx')) { setError('Choose a native .xlsx export. .xls and CSV are not supported in this slice.'); return; }
-    if (file.size > MAX_FILE_BYTES) { setError('File exceeds the 5 MiB limit. Nothing was imported.'); return; }
-    setLoading(true);
-    try {
-      const bytes = await file.arrayBuffer();
-      if (token !== generation.current) return;
-      const worker = new Worker(new URL('./import.worker.ts', import.meta.url), { type: 'module' });
-      const finish = () => {
-        worker.terminate();
-        if (job.current) clearTimeout(job.current.timer);
-        job.current = null; setLoading(false);
-      };
-      const timer = setTimeout(() => { finish(); setError('Import exceeded 10 seconds and was stopped. No data was retained.'); }, 10_000);
-      job.current = { worker, timer };
-      worker.onmessage = (event: MessageEvent<{ ok: boolean; result?: ImportedLogbook; error?: string }>) => {
-        if (token !== generation.current) return;
-        finish();
-        if (event.data.ok && event.data.result) setBook(event.data.result);
-        else setError(event.data.error ?? 'Could not read this workbook.');
-      };
-      worker.onerror = () => { if (token === generation.current) { finish(); setError('Could not read this workbook. Import stopped.'); } };
-      worker.postMessage(bytes, [bytes]);
-    } catch {
-      if (token === generation.current) { setLoading(false); setError('Could not read this file. Nothing was imported.'); }
-    }
+  function clear() {
+    clearImport();
+    resetPresentation();
+  }
+  function openFile(file: File) {
+    resetPresentation();
+    void importFile(file);
   }
 
   const rows = book?.rows ?? [];
@@ -86,18 +61,10 @@ export default function App() {
   const duplicates = rows.filter(r => r.duplicate).length;
   const noProcedure = rows.filter(r => r.operation === null).length;
   const noHospital = rows.filter(r => r.hospital === null).length;
-  const from = parseUKDate(filters.from ?? '');
-  const to = parseUKDate(filters.to ?? '');
-  const invalidDates = from === null || to === null;
-  const invalidRange = !!(from && to && from > to);
-  const datesBlocked = invalidDates || invalidRange;
-  const incompleteDate = (from === null && (filters.from ?? '').length < 10) || (to === null && (filters.to ?? '').length < 10);
-  const effectiveFilters = { ...filters, from: from ?? undefined, to: to ?? undefined };
-  const base = invalidDates || invalidRange ? [] : filterRows(rows, { ...effectiveFilters, role: undefined });
-  const selected = invalidDates || invalidRange ? [] : filterRows(rows, effectiveFilters);
-  const groups = aggregateRoles(base);
-  const months = aggregateMonths(invalidDates || invalidRange ? [] : filterRows(rows, { ...effectiveFilters, month: undefined }));
-  const procedureGroups = aggregateProcedures(invalidDates || invalidRange ? [] : filterRows(rows, { ...effectiveFilters, procedure: undefined }));
+  const { from, to, invalidRange, datesBlocked, incompleteDate, selected, contexts } = buildExplorerView(rows, filters);
+  const groups = aggregateRoles(contexts.role);
+  const months = aggregateMonths(contexts.month);
+  const procedureGroups = aggregateProcedures(contexts.procedure);
   const procedures = aggregateProcedures(rows).sort((a, b) => a.label.localeCompare(b.label));
   const hospitals = aggregateHospitals(rows).sort((a, b) => a.label.localeCompare(b.label));
   const cepodOptions = aggregateCepod(rows).sort((a, b) => a.label.localeCompare(b.label));

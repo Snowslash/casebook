@@ -14,6 +14,22 @@ npm run fixture
 
 For editing, use `npm run dev`. The strict CSP blocks development hot reload; manually reload or use the production build/preview workflow. Fixture regeneration requires Python 3 available as `python`. All tests and screenshots must use wholly synthetic files.
 
+## Composition and import ownership
+
+`buildExplorerView` in `src/explorerView.ts` is the pure boundary between raw filter inputs and row selection. It normalizes only the UK date inputs and exposes the exact selected source rows plus the role, month and procedure chart contexts. The source table applies every filter; a chart excludes only its own dimension. Invalid, incomplete or reversed dates block all four scopes. Original row objects, source row numbers, duplicate flags and exact category values remain intact. Aggregation, labels, option lists, quality summaries and presentation stay in their existing owners; there is no cache or scan optimization.
+
+`useWorkbookImport` owns idle/loading/ready/error state, generation checks, the disposable module worker and its timer. A replacement immediately removes the previous book, even when preflight or parsing fails. Clear and owner unmount invalidate pending reads and dispose active workers. Completion, timeout and failure also invalidate that generation, detach callbacks and clear the timer, so a queued reply cannot revive disposed data. The existing 10-second parser budget starts after file reading; the 5 MiB preflight and parser guards are unchanged. App-local navigation, filters, chart views and the file input reset separately. Nothing is persisted.
+
+Focused checks:
+
+```bash
+npm test -- --maxWorkers=1 tests/explorerView.test.ts
+NODE_ENV=test npm test -- --maxWorkers=1 tests/importLifecycle.test.ts
+node --test tests/landing-motion.contract.mjs
+```
+
+The composition tests use independently authored synthetic analytical rows and explicit source-ID expectations, not totals alone. The lifecycle tests mount the real React App in jsdom (a locked dev-only dependency), control file-read promises and worker callbacks, use real structured-clone transfers and fake timers, and exercise actual React unmount/StrictMode cleanup. They are deterministic integration evidence, not real-worker/browser evidence. The existing Chromium suite exercises the built app with real synthetic XLSX parsing, filtering, failed replacements, cancellation, reset/reload and network/storage privacy assertions. No real logbook is used.
+
 ## Hand-checkable synthetic acceptance fixture
 
 The fixture is authored from scratch with the same headings, real Excel numeric date cells, synthetic procedure/supervision/hospital values, synthetic CEPOD values, all other fields empty, and trailing formatted empty rows. `Synthetic unknown role` is deliberately NOT asserted to be an eLogbook label.
